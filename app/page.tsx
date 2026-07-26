@@ -423,7 +423,7 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
           <h3>Make the moment yours.</h3>
           <p>Add your email to prepare a personalized acceptance message in your email app, or download a social post with your name, photo, major, and <b>@estherfundsfoundation</b>.</p>
           <label>Email address <input type="email" value={studentEmail} onChange={(event) => setStudentEmail(event.target.value)} placeholder="student@example.com" /></label>
-          <div><button disabled={!studentEmail} onClick={emailAcceptance}>EMAIL MY LETTER</button><button onClick={downloadAcceptanceGraphic}>DOWNLOAD “I’M ACCEPTED” GRAPHIC</button></div>
+          <div><button disabled={!studentEmail} onClick={emailAcceptance}>EMAIL MY LETTER</button><button onClick={downloadAcceptanceGraphic}>DOWNLOAD “I’M ACCEPTED” GRAPHIC</button><a href="https://canva.link/3tulwxjw3jszekl" target="_blank" rel="noreferrer">PERSONALIZE THE OFFICIAL CANVA TEMPLATE ↗</a></div>
           <small>Your email and photo stay on this device. “Email my letter” opens your email app with the message prepared for you to review and send.</small>
         </div>
         <div className="acceptance-actions"><button onClick={() => window.print()}>PRINT ACCEPTANCE LETTER</button><button onClick={() => setAccepted(true)}>ACCEPT MY OFFER & BEGIN ENROLLMENT →</button></div>
@@ -853,7 +853,7 @@ export default function Home() {
                   ["07", "GRADUATE & STAY CONNECTED", "Celebrate with an EFFU credential and continue through EFF mentoring, advocacy, volunteering, and support."],
                 ].map(([number, title, description]) => <article key={number}><span>{number}</span><div><b>{title}</b><p>{description}</p></div></article>)}
               </div>
-              <div className="accepted-actions"><button className="primary" onClick={() => navigate("campuslife")}>START MY APPLICATION →</button><button className="outline" onClick={() => navigate("courses")}>PREVIEW A COURSE</button></div>
+              <div className="accepted-actions"><button className="primary" onClick={() => navigate("campuslife")}>START MY APPLICATION →</button><button className="outline" onClick={() => navigate("courses")}>PREVIEW A COURSE</button><a className="canva-template-link" href="https://canva.link/3tulwxjw3jszekl" target="_blank" rel="noreferrer">USE THE OFFICIAL ACCEPTANCE TEMPLATE ↗</a></div>
             </div>
           </section>
 
