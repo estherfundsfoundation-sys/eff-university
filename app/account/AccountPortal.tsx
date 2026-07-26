@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getStoredSession, newStudentId, sendPasswordReset, signIn, signOut, signUp, updateStudentMetadata, type EFFUSession } from "../../lib/effu-auth";
 import { pathways } from "../../lib/eff-pathways";
 import { CONSENT_VERSION, FULL_SIMULATION_DISCLAIMER, SIMULATION_WATERMARK } from "../../lib/launch-readiness";
+import ScholarshipPanel from "./ScholarshipPanel";
 
 type Mode = "apply" | "signin" | "reset";
 type Metadata = {
@@ -54,6 +55,21 @@ export default function AccountPortal() {
   const metadata = (session?.user?.user_metadata || {}) as Metadata;
   const selectedPathway = useMemo(() => pathways.find((item) => item.slug === pathwaySlug) || pathways[1], [pathwaySlug]);
   const completed = metadata.completed_modules || [];
+
+  useEffect(() => {
+    if (!session?.access_token || !metadata.pathway_slug) return;
+    const pathway = pathways.find((item) => item.slug === metadata.pathway_slug) || pathways[1];
+    fetch("/api/scholarship", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "sync-student", displayName: metadata.display_name, studentId: metadata.student_id,
+        agePath: metadata.age_path, stage: metadata.stage, pathwaySlug: pathway.slug,
+        pathwayName: pathway.name, completedModules: completed.length, totalModules: pathway.modules.length,
+        acceptedAt: metadata.accepted_at,
+      }),
+    }).catch(() => null);
+  }, [session?.access_token, metadata.pathway_slug, metadata.display_name, metadata.student_id, metadata.age_path, metadata.stage, metadata.accepted_at, completed.length]);
 
   async function submitApplication(event: React.FormEvent) {
     event.preventDefault(); setLoading(true); setError(""); setMessage("");
@@ -108,7 +124,7 @@ export default function AccountPortal() {
     return <main className="account-shell">
       <header className="account-campus-header">
         <a href="/"><img src="/eff-university-dove-crest.png" alt="" /><span><b>EFF UNIVERSITY</b><small>STUDENT PORTAL</small></span></a>
-        <nav><a href="/eff-university/pathways">Explore Pathways</a><a href="/resources">Resources</a><a href="/tech-support">Tech Support</a><button onClick={async () => { await signOut(session); setSession(null); }}>Sign Out</button></nav>
+        <nav><a href="/eff-university/pathways">Explore Pathways</a><a href="/resources">Resources</a><a href="/tech-support">Tech Support</a>{session.user.email?.toLowerCase() === "nationals@estherfundsinc.org" && <a href="/admin">Admin</a>}<button onClick={async () => { await signOut(session); setSession(null); }}>Sign Out</button></nav>
       </header>
       <section className="portal-welcome">
         <div><p className="eyebrow light">WELCOME TO YOUR EFFU STUDENT PORTAL</p><h1>Welcome back,<br /><em>{metadata.display_name || "EFFU Student"}.</em></h1><p>Your next step is waiting. Continue your pathway, update your Continuity Passport, and practice the decisions that help students persist.</p></div>
@@ -118,7 +134,7 @@ export default function AccountPortal() {
         {error && <div className="account-error" role="alert">{error}</div>}
         <div className="portal-stats"><article><small>PATHWAY PROGRESS</small><b>{percentage}%</b><div><i style={{ width: `${percentage}%` }} /></div></article><article><small>MODULES COMPLETE</small><b>{completed.length}/{pathway.modules.length}</b></article><article><small>STUDENT STATUS</small><b>ACCEPTED</b></article></div>
         <div className="dashboard-grid">
-          <section className="dashboard-main"><p className="eyebrow">MY PATHWAY</p><h2>{pathway.name}</h2><p>{pathway.description}</p><ol className="account-modules">{pathway.modules.map((module, index) => <li className={completed.includes(module) ? "complete" : ""} key={module}><button disabled={loading} onClick={() => toggleModule(module)}><span>{completed.includes(module) ? "✓" : String(index + 1).padStart(2, "0")}</span><b>{module}</b><small>{completed.includes(module) ? "Completed — select to reopen" : "Mark complete"}</small></button></li>)}</ol></section>
+          <section className="dashboard-main" id="my-pathway"><p className="eyebrow">MY PATHWAY</p><h2>{pathway.name}</h2><p>{pathway.description}</p><ol className="account-modules">{pathway.modules.map((module, index) => <li className={completed.includes(module) ? "complete" : ""} key={module}><button disabled={loading} onClick={() => toggleModule(module)}><span>{completed.includes(module) ? "✓" : String(index + 1).padStart(2, "0")}</span><b>{module}</b><small>{completed.includes(module) ? "Completed — select to reopen" : "Mark complete"}</small></button></li>)}</ol></section>
           <aside className="dashboard-side">
             <article><small>QUICK ACTION</small><h3>Continue your simulation</h3><p>Enter the full college experience to explore majors, housing, financial aid, schedules, organizations, emergencies, and graduation.</p><a href="/#apply">ENTER EFF UNIVERSITY →</a></article>
             <article><small>PRIVATE RECORD</small><h3>Continuity Passport</h3><p>Your pathway and completed modules are saved securely to your account.</p><a href="/eff-university/passport">OPEN PASSPORT →</a></article>
@@ -126,6 +142,7 @@ export default function AccountPortal() {
             <article><small>MY DATA & CONSENT</small><h3>Privacy controls</h3><p>Export your current EFFU account summary, review the privacy notice and consent version, or begin a verified account-deletion request.</p><button onClick={exportAccountSummary}>EXPORT MY ACCOUNT SUMMARY</button><a href="/policies#consent">VIEW CONSENT HISTORY →</a><a href="/support#account-data">REQUEST ACCOUNT DELETION →</a></article>
           </aside>
         </div>
+        <ScholarshipPanel session={session} unlocked={completed.length >= pathway.modules.length} />
         <p className="dashboard-simulation-disclaimer"><b>{SIMULATION_WATERMARK}</b>{FULL_SIMULATION_DISCLAIMER}</p>
       </section>
     </main>;

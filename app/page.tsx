@@ -900,6 +900,11 @@ export default function Home() {
             <span>CHOOSE A MAJOR</span><b>✦</b><span>BUILD A SCHEDULE</span><b>✦</b><span>DECODE YOUR AID</span><b>✦</b><span>SOLVE REAL PROBLEMS</span><b>✦</b><span>FIND YOUR SUPPORT</span>
           </section>
 
+          <section className="home-scholarship">
+            <div className="home-scholarship-badge"><span>EFF</span><b>★</b><small>SCHOLARSHIP<br/>OPPORTUNITY</small></div>
+            <div><p className="eyebrow light">FINISH YOUR ACADEMY PATHWAY</p><h2>Complete the experience.<br/><em>Unlock your opportunity.</em></h2><p>Finish every required module in your EFFU pathway to become eligible to apply for the Esther Funds Foundation Every Future Fulfilled Scholarship—created for learners at different starting points, including middle-school learners, high-school students, prospective students, current and returning college students, and adult learners.</p><div className="home-scholarship-notes"><span>Completion unlocks the application</span><span>Guardian consent required for minors</span><span>Official rules and available funding apply</span></div><a href="/account">START MY EFFU PATHWAY →</a><small>Completing EFFU establishes eligibility to apply but does not guarantee selection, funding, a particular award amount, or payment. The scholarship is administered separately by Esther Funds Foundation.</small></div>
+          </section>
+
           <section className="accepted-signature">
             <div className="accepted-poster">
               <img src="/eff-university-dove-crest.png" alt="EFF University dove crest" />
