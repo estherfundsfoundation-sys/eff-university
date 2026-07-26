@@ -89,8 +89,292 @@ const challenges = [
 
 const formatMoney = (value: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
 
+type View = "home" | "majors" | "orientation" | "aid" | "simulation" | "campuslife" | "homeward" | "certificate";
+type CampusKind = "legacy" | "metropolitan";
+
+const campusWorlds = {
+  legacy: {
+    label: "Legacy HBCU Experience",
+    short: "The Legacy Campus",
+    description: "A fictional HBCU-inspired campus experience rooted in history, Black excellence, culture, service, leadership, and multigenerational belonging.",
+    welcome: "Welcome to Esther Legacy Campus",
+    tradition: "Future Fulfilled Founders’ Walk",
+    buildings: [
+      ["Vincent Founders Hall", "Admissions, registrar, student accounts, and the Office of the President"],
+      ["Esther Mae Academic Commons", "Library, tutoring, writing center, archives, and quiet study"],
+      ["Crowned Futures Student Union", "Dining, student organizations, events, student government, and the campus pantry"],
+      ["Possibility Hall", "Business, entrepreneurship, communications, and career development"],
+      ["Heritage Science Center", "Health, nursing, computing, engineering, and laboratory learning"],
+      ["Advocacy House", "Financial aid, accessibility, counseling referrals, basic-needs navigation, and EFF support"],
+    ],
+    halls: [
+      ["Promise Hall", "Traditional double rooms • First-year community • Community bathrooms"],
+      ["Legacy Oaks Hall", "Suite-style rooms • Living-learning communities • Study lounges"],
+      ["Crown Village", "Apartment-style • Upper-division learners • Community kitchen"],
+      ["Freedom House", "Year-round supportive housing simulation • Flexible breaks • Case-navigation connection"],
+    ],
+    organizations: [
+      "EFF Student Government Association", "Crowned Women of Purpose", "Men of Vision", "Legacy Marching Collective",
+      "Future Black Nurses Association", "National Society of Black Engineers Preview", "Divine Nine History & Service Lab",
+      "Black Student Union", "Faith & Fellowship Council", "Royal Court Leadership Program", "HBCU Debate Society",
+      "Entrepreneurs of Esther", "Future Educators Guild", "NAACP College Chapter Preview", "Residence Hall Association",
+      "First-Generation Scholars Network", "Caribbean Student Association", "African Students Collective", "Campus Activities Board",
+      "Community Service Corps", "Student Media & Yearbook", "Pre-Law Society", "Public Health Advocates",
+    ],
+  },
+  metropolitan: {
+    label: "Contemporary University Experience",
+    short: "The Metropolitan Campus",
+    description: "A fictional large-university experience built around research, innovation, commuter life, residential communities, global learning, and hundreds of ways to get involved.",
+    welcome: "Welcome to Esther Metropolitan Campus",
+    tradition: "Every Future Week of Welcome",
+    buildings: [
+      ["Future Gateway Center", "Admissions, orientation, international services, and enrollment coaching"],
+      ["Fulfilled Learning Library", "Research help, technology lending, tutoring, writing, and study rooms"],
+      ["Possibility Student Center", "Food court, events, clubs, student government, recreation, and wellbeing"],
+      ["Innovation & Discovery Complex", "Engineering, computing, health research, maker space, and laboratories"],
+      ["Community Impact Hall", "Education, social work, public policy, justice, and service learning"],
+      ["Student Success Pavilion", "Advising, financial aid, accessibility, career services, and basic-needs support"],
+    ],
+    halls: [
+      ["Gateway Hall", "First-year suites • Peer coaching • Shared study rooms"],
+      ["Discovery Village", "Major-based living-learning communities • Faculty events"],
+      ["Fulfilled Apartments", "Apartment-style • Returning and adult learners • Family-friendly options simulation"],
+      ["Commuter Commons", "Day lockers • Rest lounge • Kitchenette • Transit and carpool hub"],
+    ],
+    organizations: [
+      "EFF Campus Activities Council", "Student Government Assembly", "Women in STEM Network", "Future Coders Collective",
+      "Global Student Association", "Commuter Student Union", "Adult Learner Alliance", "First-Generation Scholars Network",
+      "Entrepreneurship & Innovation Club", "Pre-Health Society", "Future Teachers Association", "Environmental Action Lab",
+      "Student Veterans Network", "Faith & Belief Council", "Residence Hall Association", "Intramural Sports Council",
+      "Creative Media Studio", "Public Service Fellows", "Accessibility Alliance", "Food Recovery Network",
+      "Future Researchers Guild", "Mock Trial Society", "Marketing Association", "Community Garden Collective",
+    ],
+  },
+} as const;
+
+function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; onHelp: () => void }) {
+  const [campus, setCampus] = useState<CampusKind | null>(null);
+  const [studentName, setStudentName] = useState("");
+  const [studentId, setStudentId] = useState("");
+  const [photo, setPhoto] = useState("");
+  const [walletNote, setWalletNote] = useState(false);
+  const [major, setMajor] = useState("");
+  const [hall, setHall] = useState("");
+  const [clubs, setClubs] = useState<string[]>([]);
+  const [scheduleBuilt, setScheduleBuilt] = useState(false);
+  const [enrolled, setEnrolled] = useState(false);
+  const [semesterDone, setSemesterDone] = useState(false);
+  const world = campus ? campusWorlds[campus] : null;
+  const completion = [campus, major, hall, clubs.length > 0, scheduleBuilt, enrolled, semesterDone].filter(Boolean).length;
+
+  function chooseCampus(kind: CampusKind) {
+    setCampus(kind);
+    if (!studentId) {
+      const random = Math.floor(100000 + Math.random() * 900000);
+      setStudentId(`EFFU-${kind === "legacy" ? "L" : "M"}-${random}`);
+    }
+  }
+
+  function choosePhoto(file?: File) {
+    if (!file || !file.type.startsWith("image/")) return;
+    if (file.size > 5 * 1024 * 1024) {
+      window.alert("Please choose an image smaller than 5 MB.");
+      return;
+    }
+    setPhoto(URL.createObjectURL(file));
+  }
+
+  function downloadBadge() {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1100;
+    canvas.height = 700;
+    const context = canvas.getContext("2d");
+    if (!context || !world) return;
+    context.fillStyle = "#42127F";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = "#B799E3";
+    context.fillRect(0, 0, 32, canvas.height);
+    context.fillStyle = "#F5F0E6";
+    context.font = "700 38px Arial";
+    context.fillText("EFF UNIVERSITY", 70, 90);
+    context.font = "24px Arial";
+    context.fillText("EVERY FUTURE FULFILLED.", 70, 130);
+    context.fillStyle = "#FFFFFF";
+    context.font = "700 58px Arial";
+    context.fillText((studentName || "FUTURE STUDENT").toUpperCase().slice(0, 28), 70, 290);
+    context.font = "30px Arial";
+    context.fillText(studentId, 70, 350);
+    context.fillText(world.short, 70, 405);
+    context.fillText(major || "College & Career Explorer", 70, 460);
+    context.fillStyle = "#B799E3";
+    context.font = "700 26px Arial";
+    context.fillText("SIMULATION STUDENT • NOT AN OFFICIAL COLLEGE ID", 70, 610);
+    const link = document.createElement("a");
+    link.download = `${studentId || "EFFU-student"}-digital-badge.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  }
+
+  if (!world) return (
+    <section className="world-select">
+      <div className="world-heading">
+        <p className="eyebrow light">CHOOSE YOUR FICTIONAL CAMPUS EXPERIENCE</p>
+        <h1>Two campuses.<br/><em>One future worth exploring.</em></h1>
+        <p>Both experiences are entirely fictional and belong to EFF University. They are informed by common university practices, but they do not represent enrollment at FAMU, USF, or any real institution.</p>
+      </div>
+      <div className="world-cards">
+        {(Object.keys(campusWorlds) as CampusKind[]).map((key) => {
+          const item = campusWorlds[key];
+          return <article className={key} key={key}>
+            <small>{key === "legacy" ? "HBCU-INSPIRED SIMULATION" : "LARGE-UNIVERSITY SIMULATION"}</small>
+            <h2>{item.label}</h2><p>{item.description}</p>
+            <div><span>Named campus buildings</span><span>Housing selection</span><span>Student organizations</span><span>Course registration</span><span>Graduation ceremony</span></div>
+            <button onClick={() => chooseCampus(key)}>Enter {item.short} →</button>
+          </article>;
+        })}
+      </div>
+      <button className="homeward-entry" onClick={onHelp}><span>♡</span><div><small>A SEPARATE PATHWAY WITH DIGNITY</small><b>Education Bridge for Learners Experiencing Homelessness</b><p>Start with safety, documents, a high-school diploma or equivalency pathway, then build toward college, training, and stable support.</p></div><i>ENTER PATHWAY →</i></button>
+    </section>
+  );
+
+  const selectedMajor = majors.find((item) => item.name === major);
+  return (
+    <section className={`campus-world ${campus}`}>
+      <div className="campus-world-hero">
+        <button onClick={() => setCampus(null)}>← Change campus</button>
+        <p className="eyebrow light">EFF UNIVERSITY • FICTIONAL CAMPUS SIMULATION</p>
+        <h1>{world.welcome}</h1>
+        <p>{world.description}</p>
+        <div className="campus-progress"><span>Campus journey</span><div><i style={{ width: `${Math.round(completion / 7 * 100)}%` }} /></div><b>{completion}/7</b></div>
+      </div>
+
+      <div className="enrollment-desk">
+        <aside>
+          <p className="eyebrow">SIMULATED STUDENT PORTAL</p>
+          <div className="sim-id">{photo ? <img src={photo} alt="Student-selected profile preview" /> : <span>EFFU</span>}<b>{studentName || "FUTURE STUDENT"}</b><small>{studentId}</small><small>{world.short}</small></div>
+          <nav>
+            <span className={campus ? "done" : ""}>1. Choose campus</span><span className={enrolled ? "done" : ""}>2. Confirm enrollment</span>
+            <span className={hall ? "done" : ""}>3. Select housing</span><span className={scheduleBuilt ? "done" : ""}>4. Build schedule</span>
+            <span className={clubs.length ? "done" : ""}>5. Join organizations</span><span className={semesterDone ? "done" : ""}>6. Finish semester</span>
+          </nav>
+          <p className="privacy-note">Practice only. Use a nickname or leave the name blank. Never enter a Social Security number, password, bank information, or other sensitive data.</p>
+        </aside>
+        <div className="enrollment-flow">
+          <section className="portal-panel">
+            <span className="panel-number">01</span><div className="panel-heading"><small>OFFICE OF ADMISSIONS</small><h2>Accept your simulation admission</h2></div>
+            <label>Preferred display name<input value={studentName} onChange={(e) => setStudentName(e.target.value)} placeholder="Future Student" /></label>
+            <label className="photo-upload">Optional student ID photo<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => choosePhoto(e.target.files?.[0])} /><span>{photo ? "Photo selected ✓" : "Choose a photo (device-only)"}</span></label>
+            <label>Choose a simulated major<select value={major} onChange={(e) => setMajor(e.target.value)}><option value="">Select a major</option>{majors.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
+            {selectedMajor && <div className="major-confirm"><b>{selectedMajor.degree} pathway</b><span>{selectedMajor.courses.join(" • ")}</span></div>}
+            <button disabled={!major} className={enrolled ? "complete-button" : ""} onClick={() => setEnrolled(true)}>{enrolled ? "SIMULATION ENROLLMENT CONFIRMED ✓" : "FAKE SIGN-UP: CONFIRM MY PLACE"}</button>
+            <p className="legal-note">This button creates no account, submits no application, charges no fee, and does not enroll you at any real college.</p>
+            <div className="digital-id">
+              <div className="digital-id-top"><span>EFF UNIVERSITY</span><b>STUDENT EXPERIENCE PASS</b></div>
+              <div className="digital-id-person">{photo ? <img src={photo} alt="" /> : <span>YOU</span>}<div><small>SIMULATION STUDENT</small><h3>{studentName || "Future Student"}</h3><p>{studentId}</p></div></div>
+              <div className="digital-id-fields"><span><small>CAMPUS</small>{world.short}</span><span><small>PROGRAM</small>{major || "Exploring"}</span><span><small>STATUS</small>{enrolled ? "Active preview" : "Guest"}</span></div>
+              <footer><b>EVERY FUTURE FULFILLED.</b><span>Not an official college ID</span></footer>
+            </div>
+            <div className="badge-actions"><button onClick={downloadBadge}>DOWNLOAD MY DIGITAL BADGE</button><button className="apple-wallet" onClick={() => setWalletNote(true)}>＋ Add to Apple Wallet</button></div>
+            {walletNote && <div className="wallet-message"><b>Your pass design is ready for connection.</b><p>A genuine Apple Wallet pass must be issued and cryptographically signed using Esther Funds Foundation’s Apple Developer Pass Type ID and certificate. Until that secure connection is added, download the badge to your phone—EFF University will not generate a fake or unsafe wallet pass.</p><button onClick={() => setWalletNote(false)}>Got it</button></div>}
+          </section>
+
+          <section className="portal-panel map-panel">
+            <span className="panel-number">02</span><div className="panel-heading"><small>CAMPUS MAP</small><h2>Learn where support lives</h2></div>
+            <div className="building-list">{world.buildings.map(([name, purpose], index) => <article key={name}><span>{String.fromCharCode(65 + index)}</span><div><b>{name}</b><p>{purpose}</p></div></article>)}</div>
+            <div className="tradition-card"><small>CAMPUS TRADITION</small><b>{world.tradition}</b><p>A fictional welcome tradition celebrating courage, community, and the future you are building.</p></div>
+          </section>
+
+          <section className="portal-panel">
+            <span className="panel-number">03</span><div className="panel-heading"><small>HOUSING & RESIDENTIAL EDUCATION</small><h2>Choose where you would live</h2></div>
+            <div className="hall-grid">{world.halls.map(([name, details]) => <button className={hall === name ? "selected" : ""} onClick={() => setHall(name)} key={name}><span>{hall === name ? "✓" : "⌂"}</span><b>{name}</b><small>{details}</small></button>)}</div>
+            {hall && <div className="room-assignment"><b>SIMULATED ASSIGNMENT</b><span>{hall} • Room 214 • Fall Preview</span><small>Housing is not guaranteed or reserved. This selection is part of the learning experience only.</small></div>}
+          </section>
+
+          <section className="portal-panel">
+            <span className="panel-number">04</span><div className="panel-heading"><small>REGISTRAR’S OFFICE</small><h2>Build your first semester</h2></div>
+            {selectedMajor ? <div className="mock-schedule">
+              {[
+                ["MON / WED", "9:00 AM", selectedMajor.courses[0]], ["TUE / THU", "10:30 AM", selectedMajor.courses[1]],
+                ["MON / WED", "1:00 PM", "College Writing & Advocacy"], ["FRIDAY", "11:00 AM", "University Success Seminar"],
+              ].map(([days, time, course]) => <div key={course}><small>{days}</small><b>{time}</b><span>{course}</span><i>3 CR</i></div>)}
+              <p>Estimated class time: 12 hours/week • Recommended study time: 24 hours/week</p>
+            </div> : <p className="empty-prompt">Choose a major in Step 1 to generate your course schedule.</p>}
+            <button disabled={!major} className={scheduleBuilt ? "complete-button" : ""} onClick={() => setScheduleBuilt(true)}>{scheduleBuilt ? "SCHEDULE SAVED ✓" : "ADD THESE COURSES"}</button>
+          </section>
+
+          <section className="portal-panel">
+            <span className="panel-number">05</span><div className="panel-heading"><small>CENTER FOR STUDENT INVOLVEMENT</small><h2>Find your people</h2><p>Explore organizations, then practice joining up to three. Joining is simulated and sends no information.</p></div>
+            <div className="club-grid">{world.organizations.map((club) => {
+              const joined = clubs.includes(club);
+              return <button className={joined ? "joined" : ""} disabled={!joined && clubs.length >= 3} onClick={() => setClubs((current) => joined ? current.filter((item) => item !== club) : [...current, club])} key={club}><span>{joined ? "✓" : "+"}</span>{club}<small>{joined ? "INTEREST FORM SIGNED" : "EXPLORE & JOIN"}</small></button>;
+            })}</div>
+            {clubs.length > 0 && <div className="org-confirm"><b>YOUR INVOLVEMENT PLAN</b>{clubs.map((club) => <span key={club}>{club}</span>)}</div>}
+          </section>
+
+          <section className="portal-panel semester-panel">
+            <span className="panel-number">06</span><div className="panel-heading"><small>FIRST SEMESTER CHECKPOINT</small><h2>Practice staying enrolled</h2></div>
+            <div className="semester-events">
+              <article><b>WEEK 3</b><h3>Your textbook costs $180.</h3><p>Compare library reserve, rental, used copies, open resources, and aid before putting it on a high-interest card.</p></article>
+              <article><b>WEEK 8</b><h3>Your grade drops after a missed exam.</h3><p>Read the syllabus, contact the professor, document the reason, use tutoring, and ask what recovery options remain.</p></article>
+              <article><b>WEEK 12</b><h3>A balance appears before registration.</h3><p>Request an itemized bill, speak with financial aid and student accounts, ask about appeals or completion support, and keep a written record.</p></article>
+            </div>
+            <button disabled={!enrolled || !hall || !scheduleBuilt || clubs.length === 0} className={semesterDone ? "complete-button" : ""} onClick={() => setSemesterDone(true)}>{semesterDone ? "SEMESTER COMPLETED ✓" : "COMPLETE MY PRACTICE SEMESTER"}</button>
+          </section>
+
+          <section className="portal-panel commencement-panel">
+            <span className="panel-number">07</span><div className="panel-heading"><small>OFFICE OF COMMENCEMENT</small><h2>Your future graduation</h2></div>
+            <div className="grad-stage"><span>EFFU</span><h3>{studentName || "Future Student"}</h3><p>{selectedMajor?.degree || "College & Career"} Readiness Pathway</p><b>CLASS OF YOUR FUTURE</b></div>
+            <button disabled={!semesterDone} onClick={onGraduate}>ATTEND MY SIMULATED GRADUATION →</button>
+            <p className="legal-note">The completion document is a simulation certificate—not a college degree, diploma, academic credit, license, or professional credential.</p>
+          </section>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HomewardPathway({ onCampus }: { onCampus: () => void }) {
+  const [steps, setSteps] = useState<number[]>([]);
+  const milestones = [
+    ["Start with safety and connection", "Connect with a local coordinated-entry, shelter, outreach, school liaison, or trusted service provider. Education planning should never require giving up immediate safety, food, healthcare, or housing support.", ["Safe contact method", "Mailing-address plan", "Local service connection"]],
+    ["Recover essential records", "Build a plan for identification, school transcripts, prior credits, and a reliable way to receive messages. Do not email sensitive identity documents to EFF.", ["ID replacement plan", "Transcript request", "Private document storage"]],
+    ["Choose a secondary credential route", "Depending on age and state rules, compare re-enrollment in a public high school, an adult high-school diploma program, an accredited adult education program, or a state-recognized high-school equivalency option.", ["School-district homeless liaison", "State adult education office", "Diploma vs. equivalency comparison"]],
+    ["Build literacy, digital, and career readiness", "Use adult education, library technology, workforce programs, and career-and-technical education to strengthen skills while moving toward a credential.", ["Digital access plan", "Career-interest map", "Workforce training search"]],
+    ["Plan postsecondary entry", "Compare community college, HBCUs, four-year universities, certificates, apprenticeships, and workforce pathways by cost, support, schedule, and housing stability.", ["Major and pathway explorer", "True-cost worksheet", "Campus support checklist"]],
+    ["Complete financial-aid steps", "The FAFSA asks about homelessness or risk of homelessness. Eligible unaccompanied students may receive an independent-status determination. A financial-aid office can explain the documentation process.", ["StudentAid.gov account plan", "FAFSA homelessness questions", "Financial-aid administrator conversation"]],
+    ["Create a persistence and housing plan", "Before enrolling, identify break housing, food access, transportation, technology, emergency aid, academic support, and at least two people to contact when a problem appears.", ["Break-housing question list", "Emergency resource map", "Two-person support team"]],
+  ];
+  const percent = Math.round(steps.length / milestones.length * 100);
+  return <section className="homeward-page">
+    <div className="homeward-hero">
+      <p className="eyebrow light">A SEPARATE EFF UNIVERSITY SIMULATION</p>
+      <h1>Homeward Scholars<br/><em>Education Bridge</em></h1>
+      <p>A dignity-centered pathway for learners experiencing homelessness or housing instability—beginning with safety and a secondary credential, then building toward college, training, employment, and long-term support.</p>
+      <div className="dignity-note"><b>YOU ARE A STUDENT WITH A FUTURE—NOT A PROBLEM TO BE FIXED.</b><span>This simulation does not determine eligibility or replace a school, housing provider, benefits counselor, or financial-aid administrator.</span></div>
+    </div>
+    <div className="homeward-layout">
+      <aside><p className="eyebrow">YOUR BRIDGE PLAN</p><strong>{percent}%</strong><div className="progress-track"><i style={{ width: `${percent}%` }} /></div><p>{steps.length} of {milestones.length} planning stations explored</p><a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer">Connect with EFF Student Help ↗</a></aside>
+      <div className="bridge-steps">
+        {milestones.map(([title, copy, tools], index) => {
+          const done = steps.includes(index);
+          return <article className={done ? "done" : ""} key={title as string}><button onClick={() => setSteps((current) => done ? current.filter((item) => item !== index) : [...current, index])}><span>{done ? "✓" : String(index + 1).padStart(2, "0")}</span><div><small>BRIDGE STATION</small><h2>{title}</h2><p>{copy}</p></div><b>{done ? "EXPLORED" : "MARK EXPLORED"}</b></button><div>{(tools as string[]).map((tool) => <span key={tool}>□ {tool}</span>)}</div></article>;
+        })}
+        <section className="verified-resources">
+          <p className="eyebrow light">VERIFIED STARTING POINTS</p><h2>Move from simulation to support.</h2>
+          <div><a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer"><b>EFF National Student Help Desk</b><span>Aid navigation, advocacy, scholarships, Emergency Grant/Name Your Need, FAFSA and school-balance support.</span></a>
+          <a href="https://nche.ed.gov/" target="_blank" rel="noreferrer"><b>National Center for Homeless Education</b><span>School rights, local liaison information, and education resources for children and youth experiencing homelessness.</span></a>
+          <a href="https://www.ed.gov/adult-programs" target="_blank" rel="noreferrer"><b>U.S. Department of Education Adult Programs</b><span>Adult education, literacy, state programs, career pathways, and high-school-equivalency information.</span></a>
+          <a href="https://studentaid.gov/articles/fafsa-student-steps/" target="_blank" rel="noreferrer"><b>Federal Student Aid</b><span>Official FAFSA guidance, including homelessness, unusual circumstances, and dependency-status questions.</span></a></div>
+        </section>
+        <button className="campus-return" onClick={onCampus}>When you are ready, explore the EFF University campus →</button>
+      </div>
+    </div>
+  </section>;
+}
+
 export default function Home() {
-  const [view, setView] = useState<"home" | "majors" | "orientation" | "aid" | "simulation" | "certificate">("home");
+  const [view, setView] = useState<View>("home");
   const [query, setQuery] = useState("");
   const [school, setSchool] = useState("All schools");
   const [openMajor, setOpenMajor] = useState<string | null>(null);
@@ -135,10 +419,11 @@ export default function Home() {
           <button onClick={() => navigate("majors")}>Academics</button>
           <button onClick={() => navigate("orientation")}>Orientation</button>
           <button onClick={() => navigate("aid")}>Financial Aid Lab</button>
-          <button onClick={() => navigate("simulation")}>Campus Simulation</button>
+          <button onClick={() => navigate("campuslife")}>Campus Life</button>
+          <button onClick={() => navigate("homeward")}>Education Bridge</button>
           <button onClick={goToOrganizations}>For Organizations</button>
         </nav>
-        <button className="portal-button" onClick={() => navigate("orientation")}>Enter campus <span>→</span></button>
+        <button className="portal-button" onClick={() => navigate("campuslife")}>Enter campus <span>→</span></button>
       </header>
 
       {view === "home" && (
@@ -185,7 +470,9 @@ export default function Home() {
                 ["01", "Academic Commons", "Search more than 50 majors and preview actual first-year courses.", "majors" as const, "Explore academics"],
                 ["02", "Orientation Hall", "Complete a five-part student orientation with guides, checklists, and support resources.", "orientation" as const, "Start orientation"],
                 ["03", "Financial Aid Office", "Open a simulated award packet and calculate the true amount you would owe.", "aid" as const, "Decode an offer"],
-                ["04", "Persistence Lab", "Face realistic academic, financial, work, housing, and registration problems.", "simulation" as const, "Enter the simulation"],
+                ["04", "Campus Life Experience", "Choose an HBCU-inspired or contemporary university campus, select housing, register for classes, join organizations, and graduate.", "campuslife" as const, "Live the full experience"],
+                ["05", "Persistence Lab", "Face realistic academic, financial, work, housing, and registration problems.", "simulation" as const, "Practice staying enrolled"],
+                ["06", "Homeward Scholars Bridge", "A separate dignity-centered education pathway for learners experiencing homelessness or housing instability.", "homeward" as const, "Build an education bridge"],
               ].map(([number, title, copy, destination, action]) => (
                 <article className="campus-building" key={number}>
                   <span className="building-number">{number}</span>
@@ -367,6 +654,14 @@ export default function Home() {
         </section>
       )}
 
+      {view === "campuslife" && (
+        <CampusLifeSimulation onGraduate={() => navigate("certificate")} onHelp={() => navigate("homeward")} />
+      )}
+
+      {view === "homeward" && (
+        <HomewardPathway onCampus={() => navigate("campuslife")} />
+      )}
+
       {view === "simulation" && (
         <section className="simulation-page">
           <div className="sim-sidebar">
@@ -393,11 +688,12 @@ export default function Home() {
       {view === "certificate" && (
         <section className="completion-page">
           <p className="eyebrow">EFF UNIVERSITY • EXPERIENCE COMPLETE</p>
-          <h1>You practiced how to<br/><em>protect your future.</em></h1>
-          <p>You explored academic pathways, learned where support lives, decoded college costs, and responded to real persistence challenges.</p>
+          <h1>Welcome to your<br/><em>simulated graduation.</em></h1>
+          <p>You explored academic pathways, learned where support lives, decoded college costs, joined campus life, and practiced responding to real persistence challenges.</p>
           <div className="certificate">
-            <span className="cert-crown">♛</span><small>ESTHER FUNDS FOUNDATION</small><h2>EFF University</h2><p>CERTIFICATE OF COLLEGE & CAREER READINESS</p><span>This recognizes</span><strong>Future Student</strong><p>for completing the EFF University orientation and real-life college persistence simulation</p><div><span>For such a time as this.</span><b>EVERY FUTURE FULFILLED.</b></div>
+            <span className="cert-crown">♛</span><small>ESTHER FUNDS FOUNDATION</small><h2>EFF University</h2><p>SIMULATION DEGREE OF COLLEGE & CAREER READINESS</p><span>This recognizes</span><strong>Future Student</strong><p>for completing the EFF University campus, orientation, and college-persistence learning experience</p><div><span>Educational simulation • No academic credit</span><b>EVERY FUTURE FULFILLED.</b></div>
           </div>
+          <p className="legal-note">This celebratory simulation degree is not a high-school diploma, GED or equivalency credential, college degree, academic credit, license, or professional certification.</p>
           <div className="completion-actions"><button className="primary" onClick={() => window.print()}>Print certificate</button><button className="outline" onClick={() => navigate("majors")}>Keep exploring majors</button><a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer">Get real student support ↗</a></div>
         </section>
       )}

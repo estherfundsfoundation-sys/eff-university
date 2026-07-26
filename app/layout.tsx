@@ -8,7 +8,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const protocol = host.includes("localhost") ? "http" : "https";
   const base = new URL(`${protocol}://${host}`);
   const title = "EFF University | Experience College Before You Enroll";
-  const description = "Explore 50+ majors, complete a real student orientation, decode a simulated financial-aid award, and practice solving college challenges.";
+  const description = "Choose an HBCU-inspired or contemporary fictional campus, explore 50+ majors, select housing, join organizations, decode financial aid, and attend a simulated graduation.";
 
   return {
     metadataBase: base,
