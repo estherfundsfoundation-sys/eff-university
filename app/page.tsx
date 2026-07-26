@@ -10,7 +10,7 @@ type Major = {
   career: string;
 };
 
-const majors: Major[] = [
+const coreMajors: Major[] = [
   { name: "Accounting", school: "Business & Entrepreneurship", degree: "B.S.", courses: ["Financial Accounting", "Auditing", "Tax Strategy"], career: "Auditor, analyst, CPA pathway" },
   { name: "Advertising", school: "Media & Creative Arts", degree: "B.A.", courses: ["Brand Storytelling", "Media Strategy", "Campaign Studio"], career: "Creative strategist, media planner" },
   { name: "Africana Studies", school: "Humanities & Social Sciences", degree: "B.A.", courses: ["African Diaspora", "Black Political Thought", "Culture & Identity"], career: "Research, policy, education" },
@@ -72,6 +72,29 @@ const majors: Major[] = [
   { name: "Urban Planning", school: "Design & Built Environment", degree: "B.S.", courses: ["City Systems", "GIS Mapping", "Community Design"], career: "Planner, development analyst" },
 ];
 
+const additionalMajorNames = [
+  "Actuarial Science", "Agribusiness", "Agricultural Science", "American Sign Language", "Animal Science",
+  "Anthropology", "Applied Artificial Intelligence", "Astronomy", "Athletic Training", "Aviation Management",
+  "Biomedical Engineering", "Broadcast Media", "Business Administration", "Clinical Laboratory Science", "Cloud Computing",
+  "Communication Sciences & Disorders", "Community Development", "Digital Media Production", "Educational Leadership", "Energy Engineering",
+  "Event Management", "Exercise Science", "Geographic Information Science", "Global Health", "Health Informatics",
+  "Industrial Engineering", "Interior Design", "Marine Biology", "Medical Humanities", "Meteorology",
+  "Nonprofit Leadership", "Physics", "Pre-Dentistry", "Pre-Medicine", "Real Estate",
+  "Recreation & Tourism", "Robotics Engineering", "Sports Journalism", "Statistics", "Veterinary Science",
+  "Web & Interactive Design",
+];
+
+const majors: Major[] = [
+  ...coreMajors,
+  ...additionalMajorNames.map((name, index) => ({
+    name,
+    school: index % 5 === 0 ? "Business & Entrepreneurship" : index % 5 === 1 ? "Science & Technology" : index % 5 === 2 ? "Health & Wellness" : index % 5 === 3 ? "Engineering & Computing" : "Media & Creative Arts",
+    degree: index % 3 === 0 ? "B.A." : "B.S.",
+    courses: [`${name} Foundations`, "Research & Professional Practice", "Applied Capstone Studio"],
+    career: `Career and graduate pathways connected to ${name.toLowerCase()}`,
+  })),
+];
+
 const orientationSteps = [
   ["01", "Welcome & belonging", "Meet your virtual orientation leader, learn campus language, and choose the support people you want on your team.", ["Campus vocabulary guide", "Family & supporter guide", "Belonging check-in"]],
   ["02", "Academic life", "Build a realistic schedule, read a syllabus, use office hours, and practice emailing a professor before a problem grows.", ["Sample syllabus", "Professor email builder", "Study-time calculator"]],
@@ -127,6 +150,7 @@ const campusWorlds = {
       "Entrepreneurs of Esther", "Future Educators Guild", "NAACP College Chapter Preview", "Residence Hall Association",
       "First-Generation Scholars Network", "Caribbean Student Association", "African Students Collective", "Campus Activities Board",
       "Community Service Corps", "Student Media & Yearbook", "Pre-Law Society", "Public Health Advocates",
+      ...majors.map((major) => `${major.name} Student Society`),
     ],
   },
   metropolitan: {
@@ -163,6 +187,7 @@ const campusWorlds = {
       "Student Veterans Network", "Faith & Belief Council", "Residence Hall Association", "Intramural Sports Council",
       "Creative Media Studio", "Public Service Fellows", "Accessibility Alliance", "Food Recovery Network",
       "Future Researchers Guild", "Mock Trial Society", "Marketing Association", "Community Garden Collective",
+      ...majors.map((major) => `${major.name} Student Society`),
     ],
   },
 } as const;
@@ -672,6 +697,7 @@ export default function Home() {
           <button onClick={() => navigate("families")}>Parents & Families</button>
           <button onClick={() => navigate("homeward")}>Education Bridge</button>
           <button onClick={goToOrganizations}>For Organizations</button>
+          <a href="/community">Student Community</a>
         </nav>
         <button className="portal-button" onClick={() => navigate("campuslife")}>APPLY NOW <span>→</span></button>
       </header>
@@ -681,9 +707,9 @@ export default function Home() {
           <section className="hero">
             <div className="hero-copy">
               <p className="eyebrow">ESTHER FUNDS FOUNDATION PRESENTS</p>
-              <h1>I’m Accepted<br/><em>to EFFU.</em></h1>
-              <p className="hero-kicker">LEARNING HOW TO NAVIGATE COLLEGE</p>
-              <p className="hero-lede">Apply. Receive your personalized acceptance. Enroll. Explore majors. Take courses. Read a financial-aid offer. Build your schedule. Join campus life. Face the moments nobody warns you about—and learn exactly what to do next.</p>
+              <h1>Welcome to<br/><em>EFF University.</em></h1>
+              <p className="hero-kicker">THE NATION’S #1 COLLEGE-NAVIGATION UNIVERSITY EXPERIENCE</p>
+              <p className="hero-lede">Explore 100 academic majors and 100+ student organizations. Join a real student community. Follow the nationally ranked #1 EFFU Doves. Apply, enroll, take courses, manage money, experience campus life, and learn how to navigate college before the decisions become real.</p>
               <div className="hero-actions">
                 <button className="primary" onClick={() => navigate("campuslife")}>Apply to EFF University <span>↗</span></button>
                 <button className="outline" onClick={() => navigate("courses")}>Take a real mini-course</button>
@@ -708,7 +734,7 @@ export default function Home() {
           </section>
 
           <section className="university-facts">
-            <div><strong>50+</strong><span>MAJORS TO EXPLORE</span></div><div><strong>2</strong><span>IMMERSIVE CAMPUS EXPERIENCES</span></div><div><strong>4</strong><span>TAKE-ANYTIME MINI-COURSES</span></div><div><strong>$3,200</strong><span>PRACTICE CAMPUS WALLET</span></div><div><strong>1</strong><span>FUTURE WORTH FULFILLING: YOURS</span></div>
+            <div><strong>100</strong><span>MAJORS TO EXPLORE</span></div><div><strong>100+</strong><span>STUDENT ORGANIZATIONS</span></div><div><strong>#1</strong><span>EFFU DOVES FOOTBALL</span></div><div><strong>2</strong><span>IMMERSIVE CAMPUS EXPERIENCES</span></div><div><strong>1</strong><span>FUTURE WORTH FULFILLING: YOURS</span></div>
           </section>
 
           <section className="marquee">
@@ -730,7 +756,7 @@ export default function Home() {
               <div className="journey-timeline">
                 {[
                   ["01", "APPLY", "Explore pathways, complete a guided university application, and learn what real colleges may request."],
-                  ["02", "GET ACCEPTED", "Open a personalized decision letter, student ID, and downloadable “I’m Accepted” announcement."],
+                  ["02", "GET ACCEPTED", "Open a personalized decision letter, student ID, and downloadable 4:5 Instagram acceptance announcement."],
                   ["03", "ENROLL", "Accept your offer, confirm your major, enter the student portal, and complete orientation steps."],
                   ["04", "LEARN", "Take mini-courses in college language, financial aid, advocacy, emergencies, and persistence."],
                   ["05", "LIVE COLLEGE", "Choose housing, build a schedule, join organizations, attend traditions, athletics, and campus events."],
@@ -740,6 +766,30 @@ export default function Home() {
               </div>
               <div className="accepted-actions"><button className="primary" onClick={() => navigate("campuslife")}>START MY APPLICATION →</button><button className="outline" onClick={() => navigate("courses")}>PREVIEW A COURSE</button></div>
             </div>
+          </section>
+
+          <section className="front-community">
+            <div className="community-campaign">
+              <p className="eyebrow light">THE FUTURE FULFILLED NETWORK</p>
+              <h2>You are not the only one<br/><em>still figuring college out.</em></h2>
+              <p>Create a real EFFU account, build a college-interest profile, discover students exploring similar pathways, join community conversations, and send an EFFU Wave—without publicly sharing private contact information.</p>
+              <div><span><b>01</b>Create your profile</span><span><b>02</b>Choose your interests</span><span><b>03</b>Meet college explorers</span><span><b>04</b>Learn together</span></div>
+              <a href="/community">JOIN THE EFFU STUDENT COMMUNITY →</a>
+              <small>Community accounts are for ages 13+. Learners under 13 can explore EFFU with a parent, guardian, school, or organization.</small>
+            </div>
+            <div className="community-card-stack">
+              {[
+                ["A", "Avery", "Exploring HBCUs • Nursing"],
+                ["M", "Malik", "Applying now • Engineering"],
+                ["J", "Jordan", "First-generation • Business"],
+                ["T", "Taylor", "Adult learner • Social Work"],
+              ].map(([initial, name, detail], index) => <article style={{ transform: `translate(${index * 9}px, ${index * -7}px) rotate(${index % 2 ? 2 : -2}deg)` }} key={name}><span>{initial}</span><div><b>{name}</b><p>{detail}</p><small>READY TO CONNECT • EFFU WAVE</small></div></article>)}
+            </div>
+          </section>
+
+          <section className="athletics-front">
+            <div><small>EFF UNIVERSITY ATHLETICS</small><h2>THE DOVES ARE<br/><em>RANKED #1.</em></h2><p>The EFFU Doves enter the Future Fulfilled season at #1—bringing football Saturdays, basketball nights, Valor the Dove, The Flight student section, Royal Sound band, cheer, dance, student media, and sports-career exploration to campus.</p><button onClick={() => navigate("campuslife")}>ENTER THE ATHLETICS EXPERIENCE →</button></div>
+            <aside><span>EFFU</span><strong>#1</strong><b>DOVES FOOTBALL</b><small>FULFILLED STADIUM • THE FLIGHT</small></aside>
           </section>
 
           <section className="campus-map">
@@ -774,7 +824,7 @@ export default function Home() {
               <p className="eyebrow light">ACADEMICS WITHOUT PRESSURE</p>
               <h2>Your major is a direction,<br/><em>not a life sentence.</em></h2>
               <p>Compare fields by what you will study, what the work can look like, and what other pathways may lead to the same goal.</p>
-              <button className="cream-button" onClick={() => navigate("majors")}>View the full catalog →</button>
+              <button className="cream-button" onClick={() => navigate("majors")}>Explore all 100 majors →</button>
             </div>
             <div className="major-ticket-stack">
               {["NURSING • B.S.N.", "COMPUTER SCIENCE • B.S.", "ENTREPRENEURSHIP • B.B.A.", "FILM & TELEVISION • B.F.A.", "SOCIAL WORK • B.S.W."].map((item, i) => <span style={{ transform: `rotate(${i % 2 ? 2 : -2}deg)` }} key={item}>{item}</span>)}
