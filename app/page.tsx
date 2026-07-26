@@ -213,6 +213,7 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
   const [campusCash, setCampusCash] = useState(3200);
   const [moneyRound, setMoneyRound] = useState(0);
   const [moneyLessons, setMoneyLessons] = useState<string[]>([]);
+  const [completedAlerts, setCompletedAlerts] = useState<string[]>([]);
   const world = campus ? campusWorlds[campus] : null;
   const completion = [campus, major, hall, clubs.length > 0, scheduleBuilt, enrolled, semesterDone].filter(Boolean).length;
 
@@ -334,6 +335,24 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
     link.click();
   }
 
+  function downloadDormPass() {
+    if (!world || !hall) return;
+    const canvas = document.createElement("canvas"); canvas.width = 1200; canvas.height = 780;
+    const context = canvas.getContext("2d"); if (!context) return;
+    context.fillStyle = "#F5F0E6"; context.fillRect(0, 0, 1200, 780);
+    context.fillStyle = "#260651"; context.fillRect(0, 0, 1200, 160);
+    context.fillStyle = "#42127F"; context.fillRect(0, 160, 28, 620);
+    context.fillStyle = "#FFFFFF"; context.font = "700 52px Arial"; context.fillText("EFF UNIVERSITY HOUSING", 65, 95);
+    context.fillStyle = "#42127F"; context.font = "700 72px Arial"; context.fillText("MOVE-IN & CHECK-IN PASS", 65, 270);
+    context.fillStyle = "#21182A"; context.font = "700 42px Arial"; context.fillText((studentName || "FUTURE STUDENT").toUpperCase(), 65, 365);
+    context.font = "32px Arial"; context.fillText(`${hall} • Room 214`, 65, 430); context.fillText(`${world.short} • Fall Preview`, 65, 480);
+    context.fillStyle = "#B799E3"; context.fillRect(65, 540, 1070, 120);
+    context.fillStyle = "#260651"; context.font = "700 25px Arial"; context.fillText("CHECK-IN WINDOW: SATURDAY • 10:30–11:00 AM", 95, 590);
+    context.font = "21px Arial"; context.fillText(`STUDENT ID: ${studentId}  •  BRING THIS PASS TO THE HOUSING DESK`, 95, 630);
+    context.font = "700 19px Arial"; context.fillText("EVERY FUTURE FULFILLED. • @estherfundsfoundation", 65, 735);
+    const link = document.createElement("a"); link.download = `${studentId}-dorm-check-in-pass.png`; link.href = canvas.toDataURL("image/png"); link.click();
+  }
+
   if (!world) return (
     <section className="world-select">
       <div className="world-heading">
@@ -427,6 +446,20 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
           <p className="privacy-note">Use a preferred display name. Never enter a Social Security number, password, bank information, or other sensitive data.</p>
         </aside>
         <div className="enrollment-flow">
+          <section className="portal-notifications">
+            <div className="notification-title"><div><span className="notification-bell">●</span><div><small>MY EFFU NOTIFICATIONS</small><h2>Good morning, {studentName || "Future Student"}.</h2></div></div><b>{6 - completedAlerts.length} NEW</b></div>
+            <div className="notification-list">{[
+              ["housing", hall ? "Your housing assignment is ready" : "Housing selection is waiting", hall ? `${hall}, Room 214 has been assigned. Download your check-in pass and choose your move-in window.` : "Choose a residence hall to unlock your room assignment and dorm check-in pass.", hall ? "DOWNLOAD DORM PASS" : "SELECT HOUSING"],
+              ["checkin", "Complete online dorm check-in", "Confirm your emergency contact plan, review prohibited items, and arrive during your assigned move-in window.", "CHECK IN"],
+              ["orientation", "New Student Orientation opens today", "Complete all five orientation stations before your first class and save your campus support contacts.", "OPEN ORIENTATION"],
+              ["schedule", scheduleBuilt ? "Your Fall Preview schedule is confirmed" : "Registration reminder: build your schedule", scheduleBuilt ? "Four courses are now visible in your student portal." : "Select your major and save a first-semester schedule.", scheduleBuilt ? "VIEW SCHEDULE" : "REGISTER"],
+              ["aid", "Financial-aid action required", "Review grants, scholarships, work-study, loans, and your remaining gap before accepting any borrowing.", "REVIEW AWARD"],
+              ["gameday", "#1 Doves student tickets released", "Claim your student ticket for Saturday at Fulfilled Stadium and join The Flight student section.", "CLAIM TICKET"],
+            ].map(([id, title, copy, action]) => {
+              const done = completedAlerts.includes(id);
+              return <article className={done ? "done" : ""} key={id}><span>{done ? "✓" : "!"}</span><div><b>{title}</b><p>{copy}</p></div><button onClick={() => { if (id === "housing" && !hall) { window.alert("Choose a residence hall in Housing & Residential Education first."); return; } if (id === "housing") downloadDormPass(); setCompletedAlerts((items) => items.includes(id) ? items : [...items, id]); }}>{done ? "COMPLETED" : action}</button></article>;
+            })}</div>
+          </section>
           <section className="portal-panel">
             <span className="panel-number">01</span><div className="panel-heading"><small>OFFICE OF ADMISSIONS</small><h2>Accept your admission</h2></div>
             <label>Preferred display name<input value={studentName} onChange={(e) => setStudentName(e.target.value)} placeholder="Future Student" /></label>
@@ -453,6 +486,7 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
           <section className="portal-panel campus-week-panel">
             <span className="panel-number">W</span><div className="panel-heading"><small>CAMPUS CULTURE & TRADITIONS</small><h2>A week in your campus life</h2><p>Traditions are where belonging becomes real. Your schedule includes academic work, community, culture, service, rest, and celebration.</p></div>
             <div className="campus-week">{world.weeklyLife.map(([day, title, description]) => <article key={day}><span>{day}</span><div><h3>{title}</h3><p>{description}</p></div><button onClick={(event) => event.currentTarget.classList.toggle("attending")}>＋ ADD TO MY WEEK</button></article>)}</div>
+            {campus === "legacy" && <img className="campus-life-photo" src="/effu-students-legacy-yard.png" alt="College students enjoying an HBCU-inspired campus Yard and organization market" />}
             {campus === "legacy" && <div className="culture-note"><b>ABOUT THE HBCU-INSPIRED EXPERIENCE</b><p>EFF University honors the diversity of HBCU life. No single tradition represents every HBCU. This original campus week draws inspiration from documented traditions involving campus markets, the Yard, homecoming, Royal Court, marching bands, chapel, service, student entrepreneurship, and organization life.</p></div>}
           </section>
 
@@ -737,6 +771,11 @@ export default function Home() {
             <div><strong>100</strong><span>MAJORS TO EXPLORE</span></div><div><strong>100+</strong><span>STUDENT ORGANIZATIONS</span></div><div><strong>#1</strong><span>EFFU DOVES FOOTBALL</span></div><div><strong>2</strong><span>IMMERSIVE CAMPUS EXPERIENCES</span></div><div><strong>1</strong><span>FUTURE WORTH FULFILLING: YOURS</span></div>
           </section>
 
+          <section className="students-on-campus">
+            <img src="/effu-students-campus-quad.png" alt="A diverse group of college students walking across the fictional EFF University campus" />
+            <div><p className="eyebrow light">THIS IS WHAT POSSIBILITY LOOKS LIKE</p><h2>Find your people.<br/><em>Find your pathway.</em></h2><p>Campus is more than classrooms. It is the conversation on the way to class, the organization that helps you belong, the adviser who explains the next step, and the friend who reminds you not to give up.</p><a href="/community">MEET THE EFFU COMMUNITY →</a></div>
+          </section>
+
           <section className="marquee">
             <span>CHOOSE A MAJOR</span><b>✦</b><span>BUILD A SCHEDULE</span><b>✦</b><span>DECODE YOUR AID</span><b>✦</b><span>SOLVE REAL PROBLEMS</span><b>✦</b><span>FIND YOUR SUPPORT</span>
           </section>
@@ -856,6 +895,7 @@ export default function Home() {
           </section>
 
           <section className="support-banner">
+            <img className="support-photo" src="/effu-students-success-center.png" alt="Students reviewing college resources with an adviser in the EFFU Student Success Center" />
             <div><span className="hand">♡</span><p className="eyebrow">WHEN CAMPUS CHALLENGES BECOME REAL</p><h2>You do not have to solve it alone.</h2></div>
             <p>EFF connects students to scholarship resources, emergency assistance requests, FAFSA guidance, balance advocacy, and a national help desk.</p>
             <a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer">Visit the Student Help Center ↗</a>
