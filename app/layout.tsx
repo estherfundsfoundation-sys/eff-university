@@ -7,8 +7,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const host = requestHeaders.get("host") ?? "eff-university.local";
   const protocol = host.includes("localhost") ? "http" : "https";
   const base = new URL(`${protocol}://${host}`);
-  const title = "EFF University | Live College Before You Choose It";
-  const description = "A free four-week college and career simulation for learners ages 11 and up, created by Esther Funds Foundation.";
+  const title = "EFF University | Experience College Before You Enroll";
+  const description = "Explore 50+ majors, complete a real student orientation, decode a simulated financial-aid award, and practice solving college challenges.";
 
   return {
     metadataBase: base,
@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title,
       description,
       type: "website",
-      images: [{ url: new URL("/og.png", base).toString(), width: 1536, height: 1024, alt: "EFF University college test-drive experience" }],
+      images: [{ url: new URL("/og.png", base).toString(), width: 1536, height: 1024, alt: "EFF University virtual college experience" }],
     },
     twitter: {
       card: "summary_large_image",
