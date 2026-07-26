@@ -827,8 +827,7 @@ export default function Home() {
       </section>}
       <header className="university-header">
         <button className="wordmark" onClick={() => navigate("home")} aria-label="EFF University home">
-          <img className="header-crest" src="/eff-university-dove-crest.png" alt="EFF University dove crest" />
-          <span><b>EFF UNIVERSITY</b><small>Every Future Fulfilled.</small></span>
+          <img className="header-official-logo" src="/effu-primary-dove-wordmark.png" alt="EFF University — Every Future Fulfilled" />
         </button>
         <nav aria-label="University navigation">
           <button onClick={() => navigate("majors")}>Academics</button>
