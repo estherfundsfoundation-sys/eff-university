@@ -1,5 +1,5 @@
 export const SUPABASE_URL = "https://yanlutwjvqfxmvohvvvq.supabase.co";
-export const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ltaNA7nnVozoSCOcZIjg";
+export const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_DzJXD3x6ox4H-qAPPOjGnw_34lpBN73";
 const storageKey = "effu-student-session";
 
 export type EFFUSession = {
