@@ -681,8 +681,9 @@ export default function Home() {
           <section className="hero">
             <div className="hero-copy">
               <p className="eyebrow">ESTHER FUNDS FOUNDATION PRESENTS</p>
-              <h1>A university you can<br/><em>experience before enrolling.</em></h1>
-              <p className="hero-lede">Explore majors. Attend orientation. Read a real financial-aid offer. Build your schedule. Face the moments nobody warns you about—and learn what to do next.</p>
+              <h1>I’m Accepted<br/><em>to EFFU.</em></h1>
+              <p className="hero-kicker">LEARNING HOW TO NAVIGATE COLLEGE</p>
+              <p className="hero-lede">Apply. Receive your personalized acceptance. Enroll. Explore majors. Take courses. Read a financial-aid offer. Build your schedule. Join campus life. Face the moments nobody warns you about—and learn exactly what to do next.</p>
               <div className="hero-actions">
                 <button className="primary" onClick={() => navigate("campuslife")}>Apply to EFF University <span>↗</span></button>
                 <button className="outline" onClick={() => navigate("courses")}>Take a real mini-course</button>
@@ -699,14 +700,46 @@ export default function Home() {
                 <p>Your path does not have to look like anyone else’s. Here, you can test your choices before they cost you time or money.</p>
                 <div className="letter-seal">E<br/><span>FFU</span></div>
               </div>
+              <div className="mascot-intro"><small>MEET THE EFFU MASCOT</small><b>VALOR THE DOVE</b><span>COURAGE • PURPOSE • POSSIBILITY</span></div>
               <div className="tape">EVERY FUTURE FULFILLED.</div>
               <span className="doodle star">☆</span>
               <span className="doodle arrow">↗</span>
             </div>
           </section>
 
+          <section className="university-facts">
+            <div><strong>50+</strong><span>MAJORS TO EXPLORE</span></div><div><strong>2</strong><span>IMMERSIVE CAMPUS EXPERIENCES</span></div><div><strong>4</strong><span>TAKE-ANYTIME MINI-COURSES</span></div><div><strong>$3,200</strong><span>PRACTICE CAMPUS WALLET</span></div><div><strong>1</strong><span>FUTURE WORTH FULFILLING: YOURS</span></div>
+          </section>
+
           <section className="marquee">
             <span>CHOOSE A MAJOR</span><b>✦</b><span>BUILD A SCHEDULE</span><b>✦</b><span>DECODE YOUR AID</span><b>✦</b><span>SOLVE REAL PROBLEMS</span><b>✦</b><span>FIND YOUR SUPPORT</span>
+          </section>
+
+          <section className="accepted-signature">
+            <div className="accepted-poster">
+              <img src="/eff-university-dove-crest.png" alt="EFF University dove crest" />
+              <small>ESTHER FUNDS FOUNDATION PRESENTS</small>
+              <h2>I’M<br/>ACCEPTED</h2>
+              <span>TO EFFU</span>
+              <p>@estherfundsfoundation</p>
+            </div>
+            <div className="accepted-story">
+              <p className="eyebrow">THE SIGNATURE EFF UNIVERSITY JOURNEY</p>
+              <h2>Getting accepted is the celebration.<br/><em>Knowing how to navigate college is the power.</em></h2>
+              <p>EFFU walks learners through the decisions, language, systems, money conversations, and emergencies that shape whether a student gets to college—and whether they remain enrolled.</p>
+              <div className="journey-timeline">
+                {[
+                  ["01", "APPLY", "Explore pathways, complete a guided university application, and learn what real colleges may request."],
+                  ["02", "GET ACCEPTED", "Open a personalized decision letter, student ID, and downloadable “I’m Accepted” announcement."],
+                  ["03", "ENROLL", "Accept your offer, confirm your major, enter the student portal, and complete orientation steps."],
+                  ["04", "LEARN", "Take mini-courses in college language, financial aid, advocacy, emergencies, and persistence."],
+                  ["05", "LIVE COLLEGE", "Choose housing, build a schedule, join organizations, attend traditions, athletics, and campus events."],
+                  ["06", "HANDLE REAL LIFE", "Manage a practice budget, respond to academic and financial emergencies, and learn when to ask for help."],
+                  ["07", "GRADUATE & STAY CONNECTED", "Celebrate with an EFFU credential and continue through EFF mentoring, advocacy, volunteering, and support."],
+                ].map(([number, title, description]) => <article key={number}><span>{number}</span><div><b>{title}</b><p>{description}</p></div></article>)}
+              </div>
+              <div className="accepted-actions"><button className="primary" onClick={() => navigate("campuslife")}>START MY APPLICATION →</button><button className="outline" onClick={() => navigate("courses")}>PREVIEW A COURSE</button></div>
+            </div>
           </section>
 
           <section className="campus-map">
@@ -958,9 +991,26 @@ export default function Home() {
         </section>
       )}
 
+      <section className="take-with-you">
+        <div className="toolkit-heading"><p className="eyebrow light">THE EFF UNIVERSITY RESOURCE LIBRARY</p><h2>Take the tools.<br/><em>Use them in real life.</em></h2><p>Download practical, printable guides for college applications, financial-aid decisions, emergencies, and family support. Then stay connected to the real Esther Funds Foundation for advocacy and resources.</p></div>
+        <div className="toolkit-grid">
+          {[
+            ["APPLICATIONS", "College Application Roadmap", "Build a balanced list, track deadlines, protect submission proof, compare decisions, and complete enrollment.", "/downloads/effu-college-application-roadmap.pdf"],
+            ["MONEY", "Financial Aid Offer Decoder", "Separate grants, scholarships, work-study, loans, and the remaining gap before choosing a college.", "/downloads/effu-financial-aid-decoder.pdf"],
+            ["EMERGENCIES", "Stay-Enrolled Emergency Plan", "Create a campus support map and a written response plan for academic, financial, food, housing, and transportation disruptions.", "/downloads/effu-stay-enrolled-emergency-plan.pdf"],
+            ["FOR FAMILIES", "Parent & Family Support Guide", "Listen first, plan roles, compare costs, coach advocacy, and help the student remain in charge.", "/downloads/effu-parent-family-college-support-guide.pdf"],
+          ].map(([tag, title, copy, href], index) => <article key={title}><span>0{index + 1}</span><small>{tag}</small><h3>{title}</h3><p>{copy}</p><a href={href} download>DOWNLOAD PDF ↓</a></article>)}
+        </div>
+        <div className="real-eff-connection">
+          <img src="/eff-university-dove-crest.png" alt="Esther Funds Foundation and EFF University dove crest" />
+          <div><small>BEYOND THE EFF UNIVERSITY EXPERIENCE</small><h2>Connect with the real Esther Funds Foundation.</h2><p>Find programs, opportunities, student advocacy, scholarships, emergency support resources, and ways to bring EFF University into your school or organization.</p></div>
+          <div><a href="https://www.estherfundsfoundation.org/" target="_blank" rel="noreferrer">VISIT ESTHER FUNDS FOUNDATION ↗</a><a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer">OPEN THE STUDENT HELP PORTAL ↗</a></div>
+        </div>
+      </section>
+
       <footer>
         <div className="wordmark footer-mark"><img className="footer-crest" src="/eff-university-dove-crest.png" alt="EFF University dove crest" /><span><b>EFF UNIVERSITY</b><small>Every Future Fulfilled.</small></span></div>
-        <p>EFF University is an immersive college-and-career readiness experience from Esther Funds Foundation. It is not an accredited degree-granting institution; participation does not create admission, academic credit, financial aid, or enrollment at another institution.</p>
+        <p>EFF University is an immersive college-and-career readiness experience from <a href="https://www.estherfundsfoundation.org/" target="_blank" rel="noreferrer">Esther Funds Foundation</a>. It is not an accredited degree-granting institution; participation does not create admission, academic credit, financial aid, or enrollment at another institution.</p>
         <div><button onClick={() => navigate("majors")}>Academics</button><button onClick={() => navigate("orientation")}>Orientation</button><a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer">Student Help</a></div>
         <small>© 2026 Esther Funds Foundation • For such a time as this.</small>
       </footer>
