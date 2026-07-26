@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { FULL_SIMULATION_DISCLAIMER, SIMULATION_WATERMARK } from "../lib/launch-readiness";
 
 type Major = {
   name: string;
@@ -432,7 +433,8 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
   if (!accepted) return (
     <section className="acceptance-page">
       <div className="acceptance-celebration"><img src="/eff-university-dove-crest.png" alt="EFF University dove crest" /><p className="eyebrow light">EFF UNIVERSITY ADMISSIONS</p><h1>Your future has<br/><em>a place here.</em></h1><p>Application reviewed • Decision released • Fall Preview</p></div>
-      <div className="acceptance-letter">
+      <div className="acceptance-letter official-simulation-document">
+        <b className="inline-document-watermark">{SIMULATION_WATERMARK}</b>
         <div className="acceptance-letterhead"><img src="/eff-university-dove-crest.png" alt="" /><div><b>EFF UNIVERSITY</b><span>OFFICE OF UNDERGRADUATE ADMISSIONS</span></div><small>Every Future Fulfilled.</small></div>
         <p>Dear {studentName || "Future Student"},</p>
         <h2>Congratulations!</h2>
@@ -452,7 +454,7 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
         </div>
         <div className="acceptance-actions"><button onClick={() => window.print()}>PRINT ACCEPTANCE LETTER</button><button onClick={() => setAccepted(true)}>ACCEPT MY OFFER & BEGIN ENROLLMENT →</button></div>
       </div>
-      <p className="acceptance-disclaimer">EFF University is an immersive educational experience and is not an accredited degree-granting institution. This letter does not create admission or enrollment at any other institution.</p>
+      <p className="acceptance-disclaimer">{FULL_SIMULATION_DISCLAIMER}</p>
     </section>
   );
 
@@ -500,11 +502,11 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
             <label>Choose your major<select value={major} onChange={(e) => setMajor(e.target.value)}><option value="">Select a major</option>{majors.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
             {selectedMajor && <div className="major-confirm"><b>{selectedMajor.degree} pathway</b><span>{selectedMajor.courses.join(" • ")}</span></div>}
             <button disabled={!major} className={enrolled ? "complete-button" : ""} onClick={() => setEnrolled(true)}>{enrolled ? "ENROLLMENT CONFIRMED ✓" : "CONFIRM MY PLACE"}</button>
-            <div className="digital-id">
+            <div className="digital-id official-simulation-document">
               <div className="digital-id-top"><span>EFF UNIVERSITY</span><b>STUDENT EXPERIENCE PASS</b></div>
               <div className="digital-id-person">{photo ? <img src={photo} alt="" /> : <span>YOU</span>}<div><small>EFFU STUDENT</small><h3>{studentName || "Future Student"}</h3><p>{studentId}</p></div></div>
               <div className="digital-id-fields"><span><small>CAMPUS</small>{world.short}</span><span><small>PROGRAM</small>{major || "Exploring"}</span><span><small>STATUS</small>{enrolled ? "Active preview" : "Guest"}</span></div>
-              <footer><b>EVERY FUTURE FULFILLED.</b><span>Student Experience Pass</span></footer>
+              <footer><b>EVERY FUTURE FULFILLED.</b><span>{SIMULATION_WATERMARK}</span></footer>
             </div>
             <div className="badge-actions"><button onClick={downloadBadge}>DOWNLOAD MY DIGITAL BADGE</button><button className="apple-wallet" onClick={() => setWalletNote(true)}>＋ Add to Apple Wallet</button></div>
             {walletNote && <div className="wallet-message"><b>Your pass design is ready for connection.</b><p>A genuine Apple Wallet pass must be issued and cryptographically signed using Esther Funds Foundation’s Apple Developer Pass Type ID and certificate. Until that secure connection is added, download the badge to your phone—EFF University will not generate a fake or unsafe wallet pass.</p><button onClick={() => setWalletNote(false)}>Got it</button></div>}
@@ -550,7 +552,8 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
 
           <section className="portal-panel">
             <span className="panel-number">04</span><div className="panel-heading"><small>REGISTRAR’S OFFICE</small><h2>Build your first semester</h2></div>
-            {selectedMajor ? <div className="mock-schedule">
+            {selectedMajor ? <div className="mock-schedule official-simulation-document">
+              <b className="inline-document-watermark">{SIMULATION_WATERMARK}</b>
               {[
                 ["MON / WED", "9:00 AM", selectedMajor.courses[0]], ["TUE / THU", "10:30 AM", selectedMajor.courses[1]],
                 ["MON / WED", "1:00 PM", "College Writing & Advocacy"], ["FRIDAY", "11:00 AM", "University Success Seminar"],
@@ -1111,7 +1114,8 @@ export default function Home() {
             <p>This practice packet teaches you to separate free money, money you earn later, and money you must repay.</p>
           </div>
           <div className="aid-workspace">
-            <div className="award-letter">
+            <div className="award-letter official-simulation-document">
+              <b className="inline-document-watermark">{SIMULATION_WATERMARK}</b>
               <div className="letterhead"><img className="letter-crest" src="/eff-university-dove-crest.png" alt="" /><div><b>EFF UNIVERSITY</b><small>Office of Student Financial Possibility</small></div><p>FINANCIAL AID<br/>AWARD YEAR</p></div>
               <div className="congratulations"><small>Dear Future Student,</small><h2>Congratulations!</h2><p>Your financial-aid award is ready for review. Read every category carefully so you understand free aid, earned aid, borrowing, and the remaining cost.</p></div>
               <div className="cost-row"><span>Estimated cost of attendance</span><label>$ <input type="number" value={tuition} onChange={(e) => setTuition(Number(e.target.value))} /></label></div>
@@ -1129,6 +1133,7 @@ export default function Home() {
                 <small>Interest, fees, and future monthly payments may increase the total amount repaid.</small>
               </div>
               <div className="signature-line"><span>Review before accepting</span><b>Future You</b></div>
+              <p className="document-full-disclaimer">{FULL_SIMULATION_DISCLAIMER}</p>
             </div>
             <aside className="decoder">
               <p className="eyebrow">YOUR TRUE-COST DECODER</p>
@@ -1187,10 +1192,11 @@ export default function Home() {
           <p className="eyebrow">EFF UNIVERSITY • EXPERIENCE COMPLETE</p>
           <h1>Welcome to your<br/><em>graduation.</em></h1>
           <p>You explored academic pathways, learned where support lives, decoded college costs, joined campus life, and practiced responding to real persistence challenges.</p>
-          <div className="certificate">
-            <img className="certificate-logo" src="/eff-university-dove-crest.png" alt="EFF University dove crest" /><small>ESTHER FUNDS FOUNDATION</small><h2>EFF University</h2><p>DEGREE OF COLLEGE & CAREER READINESS</p><span>This recognizes</span><strong>Future Student</strong><p>for completing the EFF University campus, orientation, and college-persistence learning experience</p><div><span>Education experience credential</span><b>EVERY FUTURE FULFILLED.</b></div>
+          <div className="certificate official-simulation-document">
+            <b className="inline-document-watermark">{SIMULATION_WATERMARK}</b>
+            <img className="certificate-logo" src="/eff-university-dove-crest.png" alt="EFF University dove crest" /><small>ESTHER FUNDS FOUNDATION</small><h2>EFF University</h2><p>CERTIFICATE OF COLLEGE & CAREER READINESS PRACTICE</p><span>This recognizes</span><strong>Future Student</strong><p>for completing the EFF University campus, orientation, and college-persistence learning experience</p><div><span>Education simulation participation credential</span><b>EVERY FUTURE FULFILLED.</b></div>
           </div>
-          <p className="legal-note">This celebratory simulation degree is not a high-school diploma, GED or equivalency credential, college degree, academic credit, license, or professional certification.</p>
+          <p className="legal-note">{FULL_SIMULATION_DISCLAIMER}</p>
           <div className="completion-actions"><button className="primary" onClick={() => window.print()}>Print certificate</button><button className="outline" onClick={() => navigate("majors")}>Keep exploring majors</button><a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer">Get real student support ↗</a></div>
           <div className="alumni-network">
             <p className="eyebrow light">YOUR EFF JOURNEY CONTINUES</p><h2>Welcome to the Future Fulfilled Network.</h2><p>Graduation is not goodbye. Stay connected to Esther Funds Foundation as a learner, mentor, ambassador, volunteer, advocate, chapter leader, or story-sharer.</p>

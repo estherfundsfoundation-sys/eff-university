@@ -3,11 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { getStoredSession, newStudentId, sendPasswordReset, signIn, signOut, signUp, updateStudentMetadata, type EFFUSession } from "../../lib/effu-auth";
 import { pathways } from "../../lib/eff-pathways";
+import { CONSENT_VERSION, FULL_SIMULATION_DISCLAIMER, SIMULATION_WATERMARK } from "../../lib/launch-readiness";
 
 type Mode = "apply" | "signin" | "reset";
 type Metadata = {
   display_name?: string; student_id?: string; pathway_slug?: string; pathway_name?: string;
   stage?: string; interests?: string; accepted_at?: string; completed_modules?: string[];
+  age_path?: string; consent_history?: Array<{ version: string; accepted_at: string; age_path: string }>;
 };
 
 export default function AccountPortal() {
@@ -23,6 +25,7 @@ export default function AccountPortal() {
   const [pathwaySlug, setPathwaySlug] = useState("college-launch");
   const [interests, setInterests] = useState("");
   const [guardian, setGuardian] = useState(false);
+  const [agePath, setAgePath] = useState("");
 
   useEffect(() => {
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
@@ -56,10 +59,13 @@ export default function AccountPortal() {
     event.preventDefault(); setLoading(true); setError(""); setMessage("");
     try {
       const studentId = newStudentId();
+      if (agePath === "under-13") throw new Error("Learners under 13 must use Guest Practice Mode with a parent, guardian, school, or authorized organization. An independent account cannot be created.");
+      const acceptedAt = new Date().toISOString();
       const result = await signUp(email.trim(), password, {
         display_name: displayName.trim(), student_id: studentId, stage,
         pathway_slug: selectedPathway.slug, pathway_name: selectedPathway.name,
-        interests: interests.trim(), accepted_at: new Date().toISOString(), completed_modules: [],
+        interests: interests.trim(), accepted_at: acceptedAt, completed_modules: [], age_path: agePath,
+        consent_history: [{ version: CONSENT_VERSION, accepted_at: acceptedAt, age_path: agePath }],
       });
       if (result.access_token) { setSession(result); setMessage("Your account is active. Welcome to EFF University!"); }
       else setMessage(`Congratulations, ${displayName}! Your acceptance letter and account-confirmation link are on the way to ${email}. Check your inbox and spam folder.`);
@@ -90,6 +96,12 @@ export default function AccountPortal() {
     finally { setLoading(false); }
   }
 
+  function exportAccountSummary() {
+    if (!session) return;
+    const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), account_email: session.user.email, simulation_record: metadata, disclaimer: FULL_SIMULATION_DISCLAIMER }, null, 2)], { type: "application/json" });
+    const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "effu-account-summary.json"; link.click(); URL.revokeObjectURL(link.href);
+  }
+
   if (session) {
     const pathway = pathways.find((item) => item.slug === metadata.pathway_slug) || pathways[1];
     const percentage = Math.round((completed.length / pathway.modules.length) * 100);
@@ -100,7 +112,7 @@ export default function AccountPortal() {
       </header>
       <section className="portal-welcome">
         <div><p className="eyebrow light">WELCOME TO YOUR EFFU STUDENT PORTAL</p><h1>Welcome back,<br /><em>{metadata.display_name || "EFFU Student"}.</em></h1><p>Your next step is waiting. Continue your pathway, update your Continuity Passport, and practice the decisions that help students persist.</p></div>
-        <article className="digital-id"><small>EFF UNIVERSITY • DIGITAL STUDENT ID</small><img src="/eff-university-dove-crest.png" alt="" /><h2>{metadata.display_name || "EFFU STUDENT"}</h2><p>{metadata.student_id}</p><span>{metadata.pathway_name}</span><b>EDUCATIONAL SIMULATION</b></article>
+        <article className="digital-id official-simulation-document"><small>EFF UNIVERSITY • EST. 2026 • DIGITAL STUDENT ID</small><img src="/eff-university-dove-crest.png" alt="" /><h2>{metadata.display_name || "EFFU STUDENT"}</h2><p>{metadata.student_id}</p><span>{metadata.pathway_name}</span><b>{SIMULATION_WATERMARK}</b></article>
       </section>
       <section className="account-dashboard">
         {error && <div className="account-error" role="alert">{error}</div>}
@@ -111,8 +123,10 @@ export default function AccountPortal() {
             <article><small>QUICK ACTION</small><h3>Continue your simulation</h3><p>Enter the full college experience to explore majors, housing, financial aid, schedules, organizations, emergencies, and graduation.</p><a href="/#apply">ENTER EFF UNIVERSITY →</a></article>
             <article><small>PRIVATE RECORD</small><h3>Continuity Passport</h3><p>Your pathway and completed modules are saved securely to your account.</p><a href="/eff-university/passport">OPEN PASSPORT →</a></article>
             <article><small>NEED HELP?</small><h3>EFFU Tech Department</h3><p>Get help signing in, confirming your email, resetting your password, or navigating your student portal.</p><a href="/tech-support">GET ACCOUNT HELP →</a></article>
+            <article><small>MY DATA & CONSENT</small><h3>Privacy controls</h3><p>Export your current EFFU account summary, review the privacy notice and consent version, or begin a verified account-deletion request.</p><button onClick={exportAccountSummary}>EXPORT MY ACCOUNT SUMMARY</button><a href="/policies#consent">VIEW CONSENT HISTORY →</a><a href="/support#account-data">REQUEST ACCOUNT DELETION →</a></article>
           </aside>
         </div>
+        <p className="dashboard-simulation-disclaimer"><b>{SIMULATION_WATERMARK}</b>{FULL_SIMULATION_DISCLAIMER}</p>
       </section>
     </main>;
   }
@@ -127,6 +141,12 @@ export default function AccountPortal() {
       {mode === "apply" && <form className="account-application" onSubmit={submitApplication}>
         <div className="form-heading"><span>01</span><div><small>OFFICE OF ADMISSIONS</small><h2>EFF University Application</h2><p>Complete this short application to create your student account. This is an educational simulation—not admission to an accredited university.</p></div></div>
         <div className="application-fields">
+          <fieldset className="age-paths full"><legend>Choose the registration path that matches the learner</legend>
+            <label><input required type="radio" name="age-path" value="under-13" checked={agePath === "under-13"} onChange={(event) => setAgePath(event.target.value)} /><b>Under 13</b><span>Guest Practice Mode only, supervised by a parent, guardian, school, or authorized organization. No independent account or community access.</span></label>
+            <label><input required type="radio" name="age-path" value="13-17" checked={agePath === "13-17"} onChange={(event) => setAgePath(event.target.value)} /><b>Ages 13–17</b><span>Minor account path with the Parent/Guardian Notice, privacy limits, and age-restricted community safeguards.</span></label>
+            <label><input required type="radio" name="age-path" value="adult" checked={agePath === "adult"} onChange={(event) => setAgePath(event.target.value)} /><b>Adult</b><span>Self-directed registration for learners age 18 or older.</span></label>
+          </fieldset>
+          {agePath === "under-13" && <div className="under13-notice full"><b>USE GUEST PRACTICE MODE</b><p>Do not enter the child’s email address, photograph, school, legal name, or other personal information.</p><a href="/first-day">CONTINUE AS A SUPERVISED GUEST →</a></div>}
           <label>Preferred display name<input required maxLength={40} value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="How should we greet you?" /></label>
           <label>Email address<input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" /></label>
           <label>Create a password<input required type="password" minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="new-password" /><small>Use at least 8 characters. Never reuse a school or banking password.</small></label>
@@ -135,8 +155,9 @@ export default function AccountPortal() {
           <label className="full">Education or career interests <span>Optional</span><textarea maxLength={240} value={interests} onChange={(event) => setInterests(event.target.value)} placeholder="What would you like to explore, learn, or accomplish?" /></label>
         </div>
         <div className="application-preview"><small>YOUR SELECTED STARTING PATHWAY</small><h3>{selectedPathway.name}</h3><p>{selectedPathway.description}</p><b>Completion product: {selectedPathway.completion}</b></div>
-        <label className="account-consent"><input required type="checkbox" checked={guardian} onChange={(event) => setGuardian(event.target.checked)} /><span>I confirm I am age 13 or older, or I am a parent/guardian creating and supervising this account. I understand EFF University is an educational simulation and not an accredited college.</span></label>
-        <button className="account-submit" disabled={loading}>{loading ? "SUBMITTING YOUR APPLICATION…" : "SUBMIT APPLICATION & CREATE MY ACCOUNT →"}</button>
+        <label className="account-consent"><input required type="checkbox" checked={guardian} onChange={(event) => setGuardian(event.target.checked)} /><span>{agePath === "13-17" ? "I reviewed the Children’s Privacy and Parent/Guardian Notices with a parent or guardian and consent to this minor account path." : "I reviewed the Privacy, Data Retention, and Simulation Notices and consent to this account path."} Consent version: {CONSENT_VERSION}.</span></label>
+        <button className="account-submit" disabled={loading || !agePath || agePath === "under-13"}>{loading ? "SUBMITTING YOUR APPLICATION…" : agePath === "under-13" ? "UNDER-13 LEARNERS USE GUEST PRACTICE MODE" : "SUBMIT APPLICATION & CREATE MY ACCOUNT →"}</button>
+        <p className="registration-disclaimer"><b>{SIMULATION_WATERMARK}</b>{FULL_SIMULATION_DISCLAIMER}</p>
         <p className="data-note">We do not request your legal name, birth date, address, Social Security number, transcripts, financial records, or identification documents.</p>
       </form>}
       {mode === "signin" && <form className="account-signin" onSubmit={submitSignIn}><div className="form-heading"><span>02</span><div><small>EFFU STUDENT ACCESS</small><h2>Student Sign In</h2><p>Return to your pathway, saved progress, and student portal.</p></div></div><label>Email address<input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></label><label>Password<input required type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" /></label><button className="account-submit" disabled={loading}>{loading ? "SIGNING IN…" : "OPEN MY STUDENT PORTAL →"}</button><button type="button" className="text-button" onClick={() => setMode("reset")}>I forgot my password</button></form>}
