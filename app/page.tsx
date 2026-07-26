@@ -772,9 +772,10 @@ export default function Home() {
           <button onClick={() => navigate("homeward")}>Education Bridge</button>
           <button onClick={goToOrganizations}>For Organizations</button>
           <a href="/resources">College Resources</a>
-          <a href="/community">Student Login</a>
+          <a href="/account">Student Login</a>
+          <a href="/eff-university/start">Explore Pathways</a>
         </nav>
-        <button className="portal-button" onClick={() => navigate("campuslife")}>APPLY NOW <span>→</span></button>
+        <button className="portal-button" onClick={() => { window.location.href = "/account"; }}>APPLY NOW <span>→</span></button>
       </header>
 
       {popupVisible && <aside className="campus-popup" role="status" aria-live="polite">
@@ -797,7 +798,7 @@ export default function Home() {
               <p className="hero-kicker">YOUR #1 COLLEGE-NAVIGATION UNIVERSITY EXPERIENCE</p>
               <p className="hero-lede">Explore 100 academic majors and 100+ student organizations. Join a real student community. Follow the EFFU preseason-ranked #1 Doves. Apply, enroll, take courses, manage money, experience campus life, and learn how to navigate college before the decisions become real.</p>
               <div className="hero-actions">
-                <button className="primary" onClick={() => navigate("campuslife")}>Apply to EFF University <span>↗</span></button>
+                <button className="primary" onClick={() => { window.location.href = "/account"; }}>Apply to EFF University <span>↗</span></button>
                 <button className="outline" onClick={() => navigate("courses")}>Take a real mini-course</button>
               </div>
               <div className="audience-note">
@@ -855,7 +856,7 @@ export default function Home() {
                   ["07", "GRADUATE & STAY CONNECTED", "Celebrate with an EFFU credential and continue through EFF mentoring, advocacy, volunteering, and support."],
                 ].map(([number, title, description]) => <article key={number}><span>{number}</span><div><b>{title}</b><p>{description}</p></div></article>)}
               </div>
-              <div className="accepted-actions"><button className="primary" onClick={() => navigate("campuslife")}>START MY APPLICATION →</button><button className="outline" onClick={() => navigate("courses")}>PREVIEW A COURSE</button><a className="canva-template-link" href="https://canva.link/3tulwxjw3jszekl" target="_blank" rel="noreferrer">USE THE OFFICIAL ACCEPTANCE TEMPLATE ↗</a></div>
+              <div className="accepted-actions"><button className="primary" onClick={() => { window.location.href = "/account"; }}>START MY APPLICATION →</button><button className="outline" onClick={() => navigate("courses")}>PREVIEW A COURSE</button><a className="canva-template-link" href="https://canva.link/3tulwxjw3jszekl" target="_blank" rel="noreferrer">USE THE OFFICIAL ACCEPTANCE TEMPLATE ↗</a></div>
             </div>
           </section>
 
@@ -904,7 +905,7 @@ export default function Home() {
                   <span className="building-number">{number}</span>
                   <div className="building-icon">{number === "01" ? "LIBRARY" : number === "02" ? "HALL" : number === "03" ? "AID" : "LAB"}</div>
                   <h3>{title}</h3><p>{copy}</p>
-                  <button onClick={() => navigate(destination)}>{action} <span>→</span></button>
+                  <button onClick={() => navigate(destination as View)}>{action} <span>→</span></button>
                 </article>
               ))}
             </div>
@@ -1153,7 +1154,7 @@ export default function Home() {
       <footer>
         <div className="wordmark footer-mark"><img className="footer-crest" src="/eff-university-dove-crest.png" alt="EFF University dove crest" /><span><b>EFF UNIVERSITY</b><small>Every Future Fulfilled.</small></span></div>
         <p>EFF University is an immersive college-and-career readiness experience from <a href="https://www.estherfundsfoundation.org/" target="_blank" rel="noreferrer">Esther Funds Foundation</a>. It is not an accredited degree-granting institution; participation does not create admission, academic credit, financial aid, or enrollment at another institution.</p>
-        <div><button onClick={() => navigate("majors")}>Academics</button><button onClick={() => navigate("orientation")}>Orientation</button><a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer">Student Help</a></div>
+        <div><button onClick={() => navigate("majors")}>Academics</button><button onClick={() => navigate("orientation")}>Orientation</button><a href="/eff-university/start">Explore Pathways</a><a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer">Student Help</a></div>
         <small>© 2026 Esther Funds Foundation • For such a time as this.</small>
       </footer>
     </main>

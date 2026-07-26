@@ -1,91 +1,58 @@
 import assert from "node:assert/strict";
-import { access, readFile, readdir } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
-const developmentPreviewMeta =
-  /<meta(?=[^>]*\bname=["']codex-preview["'])(?=[^>]*\bcontent=["']development["'])[^>]*>/i;
-const templateRoot = new URL("../", import.meta.url);
-const previewRoot = new URL("../app/_sites-preview/", import.meta.url);
+const root = new URL("../", import.meta.url);
 
-async function render() {
-  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
-  const { default: worker } = await import(workerUrl.href);
-
-  return worker.fetch(
-    new Request("http://localhost/", {
-      headers: { accept: "text/html" },
-    }),
-    {
-      ASSETS: {
-        fetch: async () => new Response("Not found", { status: 404 }),
-      },
-    },
-    {
-      waitUntil() {},
-      passThroughOnException() {},
-    },
-  );
-}
-
-test("server-renders the starter loading skeleton", async () => {
-  const response = await render();
-  assert.equal(response.status, 200);
-  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
-
-  const html = await response.text();
-  assert.match(html, developmentPreviewMeta);
-  assert.match(html, /<title>Your site is taking shape<\/title>/i);
-  assert.match(html, /Building your site/);
-  assert.match(html, /Your site is taking shape/);
-  assert.match(
-    html,
-    /Your first version will appear here automatically when it’s ready\./,
-  );
-  assert.doesNotMatch(html, /Codex/);
-  assert.match(html, /react-loading-skeleton/);
-  assert.match(html, /role="status"/);
-});
-
-test("keeps the loading skeleton scoped and disposable", async () => {
-  const [preview, css, page, layout, packageJson, files] = await Promise.all([
-    readFile(new URL("SkeletonPreview.tsx", previewRoot), "utf8"),
-    readFile(new URL("preview.css", previewRoot), "utf8"),
-    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../package.json", import.meta.url), "utf8"),
-    readdir(previewRoot),
+test("keeps the established EFF University experience and public launch routes", async () => {
+  const [home, layout, account, tech, pathways, passport] = await Promise.all([
+    readFile(new URL("app/page.tsx", root), "utf8"),
+    readFile(new URL("app/layout.tsx", root), "utf8"),
+    readFile(new URL("app/account/page.tsx", root), "utf8"),
+    readFile(new URL("app/tech-support/page.tsx", root), "utf8"),
+    readFile(new URL("app/eff-university/pathways/page.tsx", root), "utf8"),
+    readFile(new URL("app/eff-university/passport/page.tsx", root), "utf8"),
   ]);
 
-  assert.deepEqual(files.sort(), ["SkeletonPreview.tsx", "preview.css"]);
-  assert.match(preview, /from "react-loading-skeleton"/);
-  assert.match(preview, /baseColor="#eceae7"/);
-  assert.match(preview, /highlightColor="#f9f8f6"/);
-  assert.match(preview, /duration=\{2\.8\}/);
-  assert.match(preview, /sites-skeleton-search-placeholder/);
-  assert.match(packageJson, /"react-loading-skeleton": "3\.5\.0"/);
+  assert.match(home, /EFF UNIVERSITY/);
+  assert.match(home, /CampusLifeSimulation/);
+  assert.match(home, /Financial Aid Lab/);
+  assert.match(home, /Student Login/);
+  assert.match(layout, /EFF University \| Experience College Before You Enroll/);
+  assert.match(account, /AccountPortal/);
+  assert.match(tech, /EFFU TECH DEPARTMENT/);
+  assert.match(pathways, /ONE UNIVERSITY/);
+  assert.match(passport, /EFF CONTINUITY PASSPORT/);
+});
 
-  const shellIndex = preview.indexOf('className="sites-skeleton-shell"');
-  const statusIndex = preview.indexOf('className="sites-skeleton-status"');
-  assert.ok(shellIndex >= 0 && statusIndex > shellIndex);
-  assert.match(css, /position:\s*fixed/);
-  assert.match(css, /inset:\s*0/);
-  assert.match(css, /opacity:\s*0\.52/);
-  assert.match(css, /prefers-reduced-motion:\s*reduce/);
-  assert.doesNotMatch(css, /#020617|canvas|pets|progress/i);
-  assert.doesNotMatch(
-    preview,
-    /loading-spinner|status-mark|status-progress|canvas|cookie|random/i,
-  );
+test("ships all eight pathways and launch-critical account capabilities", async () => {
+  const [registry, auth, portal] = await Promise.all([
+    readFile(new URL("lib/eff-pathways.ts", root), "utf8"),
+    readFile(new URL("lib/effu-auth.ts", root), "utf8"),
+    readFile(new URL("app/account/AccountPortal.tsx", root), "utf8"),
+  ]);
 
-  assert.match(page, /export const metadata:\s*Metadata/);
-  assert.match(page, /"codex-preview": "development"/);
-  assert.match(page, /<SkeletonPreview \/>/);
-  assert.match(layout, /title:\s*"Starter Project"/);
-  assert.doesNotMatch(layout, /codex-preview|_sites-preview|themeColor|\bViewport\b/);
-  assert.doesNotMatch(css, /(^|\s)(html|body)\s*\{/m);
+  for (const slug of ["future-scholars", "college-launch", "next-chapter", "new-beginnings", "stay-enrolled", "comeback-college", "family-navigator", "community-navigator"]) {
+    assert.match(registry, new RegExp(`slug: "${slug}"`));
+  }
+  assert.match(auth, /signUp/);
+  assert.match(auth, /signIn/);
+  assert.match(auth, /sendPasswordReset/);
+  assert.match(auth, /updateStudentMetadata/);
+  assert.match(portal, /completed_modules/);
+  assert.match(portal, /personalized acceptance email/i);
+});
 
-  await assert.rejects(
-    access(new URL("public/_sites-preview", templateRoot)),
-  );
+test("contains the complete route files used by the student journey", async () => {
+  const routes = [
+    "app/account/page.tsx",
+    "app/tech-support/page.tsx",
+    "app/eff-university/start/page.tsx",
+    "app/eff-university/pathways/page.tsx",
+    "app/eff-university/pathways/[slug]/page.tsx",
+    "app/eff-university/pathways/stay-enrolled/engine/page.tsx",
+    "app/eff-university/education-bridge/page.tsx",
+    "app/eff-university/passport/page.tsx",
+  ];
+  await Promise.all(routes.map((route) => access(new URL(route, root))));
 });
