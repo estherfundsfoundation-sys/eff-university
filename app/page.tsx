@@ -96,9 +96,16 @@ const campusWorlds = {
   legacy: {
     label: "Legacy HBCU Experience",
     short: "The Legacy Campus",
-    description: "A fictional HBCU-inspired campus experience rooted in history, Black excellence, culture, service, leadership, and multigenerational belonging.",
+    description: "An HBCU-inspired campus experience rooted in history, Black excellence, culture, service, leadership, and multigenerational belonging.",
     welcome: "Welcome to Esther Legacy Campus",
     tradition: "Future Fulfilled Founders’ Walk",
+    weeklyLife: [
+      ["MONDAY", "Legacy Assembly", "Begin the week with campus news, history, student recognition, music, and a reminder that you carry generations forward."],
+      ["TUESDAY", "Chapel, Reflection & Service", "Choose a faith gathering, reflection circle, or community-service hour. Participation respects every belief and background."],
+      ["WEDNESDAY", "Crown Table Wednesday", "The dining hall’s Fried Chicken Wednesday becomes a weekly community table—with baked, grilled, vegetarian, halal-friendly, and allergy-aware choices—where students reconnect between classes."],
+      ["THURSDAY", "The Yard Comes Alive", "Student leaders table, Greek-letter organizations share public service history, candidates speak, the band rehearses, and clubs recruit."],
+      ["FRIDAY", "Future Market Friday", "Student entrepreneurs, campus departments, artists, organizations, food vendors, and resource partners fill Founders’ Walk to close the week together."],
+    ],
     buildings: [
       ["Vincent Founders Hall", "Admissions, registrar, student accounts, and the Office of the President"],
       ["Esther Mae Academic Commons", "Library, tutoring, writing center, archives, and quiet study"],
@@ -111,7 +118,7 @@ const campusWorlds = {
       ["Promise Hall", "Traditional double rooms • First-year community • Community bathrooms"],
       ["Legacy Oaks Hall", "Suite-style rooms • Living-learning communities • Study lounges"],
       ["Crown Village", "Apartment-style • Upper-division learners • Community kitchen"],
-      ["Freedom House", "Year-round supportive housing simulation • Flexible breaks • Case-navigation connection"],
+      ["Freedom House", "Year-round supportive housing • Flexible breaks • Case-navigation connection"],
     ],
     organizations: [
       "EFF Student Government Association", "Crowned Women of Purpose", "Men of Vision", "Legacy Marching Collective",
@@ -125,9 +132,16 @@ const campusWorlds = {
   metropolitan: {
     label: "Contemporary University Experience",
     short: "The Metropolitan Campus",
-    description: "A fictional large-university experience built around research, innovation, commuter life, residential communities, global learning, and hundreds of ways to get involved.",
+    description: "A large-university experience built around research, innovation, commuter life, residential communities, global learning, and hundreds of ways to get involved.",
     welcome: "Welcome to Esther Metropolitan Campus",
     tradition: "Every Future Week of Welcome",
+    weeklyLife: [
+      ["MONDAY", "Research & Opportunity Day", "Meet faculty labs, career teams, and student researchers looking for new collaborators."],
+      ["TUESDAY", "Organization Takeover", "Clubs and cultural organizations host demonstrations, interest meetings, and service sign-ups."],
+      ["WEDNESDAY", "Wellbeing Wednesday", "Drop into recreation, peer coaching, financial wellness, food support, or a quiet reset between classes."],
+      ["THURSDAY", "Late-Night Campus", "The student center stays active with tutoring, performances, intramurals, commuter events, and study groups."],
+      ["FRIDAY", "Possibility Market", "Student founders, artists, campus services, and community partners gather for an end-of-week market."],
+    ],
     buildings: [
       ["Future Gateway Center", "Admissions, orientation, international services, and enrollment coaching"],
       ["Fulfilled Learning Library", "Research help, technology lending, tutoring, writing, and study rooms"],
@@ -139,7 +153,7 @@ const campusWorlds = {
     halls: [
       ["Gateway Hall", "First-year suites • Peer coaching • Shared study rooms"],
       ["Discovery Village", "Major-based living-learning communities • Faculty events"],
-      ["Fulfilled Apartments", "Apartment-style • Returning and adult learners • Family-friendly options simulation"],
+      ["Fulfilled Apartments", "Apartment-style • Returning and adult learners • Family-friendly options"],
       ["Commuter Commons", "Day lockers • Rest lounge • Kitchenette • Transit and carpool hub"],
     ],
     organizations: [
@@ -155,7 +169,12 @@ const campusWorlds = {
 
 function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; onHelp: () => void }) {
   const [campus, setCampus] = useState<CampusKind | null>(null);
+  const [applicationCampus, setApplicationCampus] = useState<CampusKind | null>(null);
+  const [accepted, setAccepted] = useState(false);
   const [studentName, setStudentName] = useState("");
+  const [educationStage, setEducationStage] = useState("");
+  const [academicGoal, setAcademicGoal] = useState("");
+  const [goalStatement, setGoalStatement] = useState("");
   const [studentId, setStudentId] = useState("");
   const [photo, setPhoto] = useState("");
   const [walletNote, setWalletNote] = useState(false);
@@ -209,7 +228,7 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
     context.fillText(major || "College & Career Explorer", 70, 460);
     context.fillStyle = "#B799E3";
     context.font = "700 26px Arial";
-    context.fillText("SIMULATION STUDENT • NOT AN OFFICIAL COLLEGE ID", 70, 610);
+    context.fillText("EFF UNIVERSITY • EVERY FUTURE FULFILLED", 70, 610);
     const link = document.createElement("a");
     link.download = `${studentId || "EFFU-student"}-digital-badge.png`;
     link.href = canvas.toDataURL("image/png");
@@ -219,22 +238,55 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
   if (!world) return (
     <section className="world-select">
       <div className="world-heading">
-        <p className="eyebrow light">CHOOSE YOUR FICTIONAL CAMPUS EXPERIENCE</p>
-        <h1>Two campuses.<br/><em>One future worth exploring.</em></h1>
-        <p>Both experiences are entirely fictional and belong to EFF University. They are informed by common university practices, but they do not represent enrollment at FAMU, USF, or any real institution.</p>
+        <p className="eyebrow light">EFF UNIVERSITY UNDERGRADUATE ADMISSIONS</p>
+        <h1>Your application<br/><em>starts here.</em></h1>
+        <p>Tell us where you are in your education journey, choose your campus and intended major, and share the future you want to build.</p>
       </div>
       <div className="world-cards">
         {(Object.keys(campusWorlds) as CampusKind[]).map((key) => {
           const item = campusWorlds[key];
-          return <article className={key} key={key}>
-            <small>{key === "legacy" ? "HBCU-INSPIRED SIMULATION" : "LARGE-UNIVERSITY SIMULATION"}</small>
+          return <article className={`${key} ${applicationCampus === key ? "chosen" : ""}`} key={key}>
+            <small>{key === "legacy" ? "HBCU-INSPIRED CAMPUS" : "METROPOLITAN RESEARCH CAMPUS"}</small>
             <h2>{item.label}</h2><p>{item.description}</p>
             <div><span>Named campus buildings</span><span>Housing selection</span><span>Student organizations</span><span>Course registration</span><span>Graduation ceremony</span></div>
-            <button onClick={() => chooseCampus(key)}>Enter {item.short} →</button>
+            <button onClick={() => setApplicationCampus(key)}>{applicationCampus === key ? "CAMPUS SELECTED ✓" : `Select ${item.short} →`}</button>
           </article>;
         })}
       </div>
+      <form className="university-application" onSubmit={(event) => { event.preventDefault(); if (applicationCampus && major && educationStage && academicGoal) chooseCampus(applicationCampus); }}>
+        <div className="application-title"><span>EFFU</span><div><small>OFFICE OF UNDERGRADUATE ADMISSIONS</small><h2>Application for Admission</h2><p>Fall Preview Entry Term</p></div></div>
+        <div className="application-note"><b>Your privacy matters.</b><p>Use a preferred display name. This experience does not need your legal name, birth date, address, Social Security number, password, financial records, transcripts, or identification documents.</p></div>
+        <div className="application-grid">
+          <label>Preferred display name<input required value={studentName} onChange={(e) => setStudentName(e.target.value)} placeholder="How should your acceptance letter greet you?" /></label>
+          <label>Current education stage<select required value={educationStage} onChange={(e) => setEducationStage(e.target.value)}><option value="">Select your stage</option><option>Middle school explorer</option><option>High-school student</option><option>High-school graduate</option><option>Current college student</option><option>Adult or returning learner</option><option>High-school diploma or equivalency pathway</option></select></label>
+          <label>Intended major<select required value={major} onChange={(e) => setMajor(e.target.value)}><option value="">Select a major</option>{majors.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
+          <label>Primary education goal<select required value={academicGoal} onChange={(e) => setAcademicGoal(e.target.value)}><option value="">Select your goal</option><option>Explore college for the first time</option><option>Earn a four-year degree</option><option>Begin at community college and transfer</option><option>Compare college and career training</option><option>Return after stopping out</option><option>Prepare for graduate or professional school</option></select></label>
+          <label className="full">What future are you working toward? <span>Optional</span><textarea maxLength={280} value={goalStatement} onChange={(e) => setGoalStatement(e.target.value)} placeholder="In a few sentences, tell EFF University what you hope education will make possible..." /></label>
+        </div>
+        <div className="application-review"><span className={applicationCampus ? "ready" : ""}>{applicationCampus ? "✓" : "1"} Campus selected</span><span className={studentName ? "ready" : ""}>{studentName ? "✓" : "2"} Student profile</span><span className={major ? "ready" : ""}>{major ? "✓" : "3"} Academic interest</span><span className={academicGoal ? "ready" : ""}>{academicGoal ? "✓" : "4"} Education goal</span></div>
+        <button type="submit" disabled={!applicationCampus || !studentName || !major || !educationStage || !academicGoal}>SUBMIT MY EFF UNIVERSITY APPLICATION →</button>
+        <p>Submitting creates your personalized admissions experience on this device and sends no application to a real college.</p>
+      </form>
       <button className="homeward-entry" onClick={onHelp}><span>♡</span><div><small>A SEPARATE PATHWAY WITH DIGNITY</small><b>Education Bridge for Learners Experiencing Homelessness</b><p>Start with safety, documents, a high-school diploma or equivalency pathway, then build toward college, training, and stable support.</p></div><i>ENTER PATHWAY →</i></button>
+    </section>
+  );
+
+  if (!accepted) return (
+    <section className="acceptance-page">
+      <div className="acceptance-celebration"><img src="/eff-university-dove-crest.png" alt="EFF University dove crest" /><p className="eyebrow light">EFF UNIVERSITY ADMISSIONS</p><h1>Your future has<br/><em>a place here.</em></h1><p>Application reviewed • Decision released • Fall Preview</p></div>
+      <div className="acceptance-letter">
+        <div className="acceptance-letterhead"><img src="/eff-university-dove-crest.png" alt="" /><div><b>EFF UNIVERSITY</b><span>OFFICE OF UNDERGRADUATE ADMISSIONS</span></div><small>Every Future Fulfilled.</small></div>
+        <p>Dear {studentName || "Future Student"},</p>
+        <h2>Congratulations!</h2>
+        <p>It is our pleasure to offer you admission to <b>{world.short}</b> as an incoming student in the <b>{major}</b> pathway.</p>
+        <p>Your application reflects a future worth investing in. Your goal to <b>{academicGoal.toLowerCase()}</b>{goalStatement ? `—and your vision to ${goalStatement.charAt(0).toLowerCase()}${goalStatement.slice(1)}` : ""} belongs in a community built to help you explore, prepare, advocate, persist, and finish.</p>
+        <p>As an EFF University student, you will enter orientation, select housing, build your schedule, join student organizations, navigate real campus decisions, and walk across the commencement stage.</p>
+        <div className="admission-details"><span><small>EFFU STUDENT ID</small><b>{studentId}</b></span><span><small>ENTERING CAMPUS</small><b>{world.short}</b></span><span><small>INTENDED MAJOR</small><b>{major}</b></span><span><small>ENTRY TERM</small><b>Fall Preview</b></span></div>
+        <p>Welcome to EFF University. This is where possibility becomes preparation—and where every future deserves to be fulfilled.</p>
+        <div className="admission-signature"><span><b>Office of Undergraduate Admissions</b><small>Esther Funds Foundation • EFF University</small></span><img src="/eff-university-dove-crest.png" alt="" /></div>
+        <div className="acceptance-actions"><button onClick={() => window.print()}>PRINT ACCEPTANCE LETTER</button><button onClick={() => setAccepted(true)}>ACCEPT MY OFFER & ENTER MY PORTAL →</button></div>
+      </div>
+      <p className="acceptance-disclaimer">EFF University is an immersive educational experience and is not an accredited degree-granting institution. This letter does not create admission or enrollment at any other institution.</p>
     </section>
   );
 
@@ -243,7 +295,7 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
     <section className={`campus-world ${campus}`}>
       <div className="campus-world-hero">
         <button onClick={() => setCampus(null)}>← Change campus</button>
-        <p className="eyebrow light">EFF UNIVERSITY • FICTIONAL CAMPUS SIMULATION</p>
+        <p className="eyebrow light">EFF UNIVERSITY • CAMPUS EXPERIENCE</p>
         <h1>{world.welcome}</h1>
         <p>{world.description}</p>
         <div className="campus-progress"><span>Campus journey</span><div><i style={{ width: `${Math.round(completion / 7 * 100)}%` }} /></div><b>{completion}/7</b></div>
@@ -251,29 +303,28 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
 
       <div className="enrollment-desk">
         <aside>
-          <p className="eyebrow">SIMULATED STUDENT PORTAL</p>
+          <p className="eyebrow">MY EFFU STUDENT PORTAL</p>
           <div className="sim-id">{photo ? <img src={photo} alt="Student-selected profile preview" /> : <span>EFFU</span>}<b>{studentName || "FUTURE STUDENT"}</b><small>{studentId}</small><small>{world.short}</small></div>
           <nav>
             <span className={campus ? "done" : ""}>1. Choose campus</span><span className={enrolled ? "done" : ""}>2. Confirm enrollment</span>
             <span className={hall ? "done" : ""}>3. Select housing</span><span className={scheduleBuilt ? "done" : ""}>4. Build schedule</span>
             <span className={clubs.length ? "done" : ""}>5. Join organizations</span><span className={semesterDone ? "done" : ""}>6. Finish semester</span>
           </nav>
-          <p className="privacy-note">Practice only. Use a nickname or leave the name blank. Never enter a Social Security number, password, bank information, or other sensitive data.</p>
+          <p className="privacy-note">Use a preferred display name. Never enter a Social Security number, password, bank information, or other sensitive data.</p>
         </aside>
         <div className="enrollment-flow">
           <section className="portal-panel">
-            <span className="panel-number">01</span><div className="panel-heading"><small>OFFICE OF ADMISSIONS</small><h2>Accept your simulation admission</h2></div>
+            <span className="panel-number">01</span><div className="panel-heading"><small>OFFICE OF ADMISSIONS</small><h2>Accept your admission</h2></div>
             <label>Preferred display name<input value={studentName} onChange={(e) => setStudentName(e.target.value)} placeholder="Future Student" /></label>
             <label className="photo-upload">Optional student ID photo<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => choosePhoto(e.target.files?.[0])} /><span>{photo ? "Photo selected ✓" : "Choose a photo (device-only)"}</span></label>
-            <label>Choose a simulated major<select value={major} onChange={(e) => setMajor(e.target.value)}><option value="">Select a major</option>{majors.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
+            <label>Choose your major<select value={major} onChange={(e) => setMajor(e.target.value)}><option value="">Select a major</option>{majors.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
             {selectedMajor && <div className="major-confirm"><b>{selectedMajor.degree} pathway</b><span>{selectedMajor.courses.join(" • ")}</span></div>}
-            <button disabled={!major} className={enrolled ? "complete-button" : ""} onClick={() => setEnrolled(true)}>{enrolled ? "SIMULATION ENROLLMENT CONFIRMED ✓" : "FAKE SIGN-UP: CONFIRM MY PLACE"}</button>
-            <p className="legal-note">This button creates no account, submits no application, charges no fee, and does not enroll you at any real college.</p>
+            <button disabled={!major} className={enrolled ? "complete-button" : ""} onClick={() => setEnrolled(true)}>{enrolled ? "ENROLLMENT CONFIRMED ✓" : "CONFIRM MY PLACE"}</button>
             <div className="digital-id">
               <div className="digital-id-top"><span>EFF UNIVERSITY</span><b>STUDENT EXPERIENCE PASS</b></div>
-              <div className="digital-id-person">{photo ? <img src={photo} alt="" /> : <span>YOU</span>}<div><small>SIMULATION STUDENT</small><h3>{studentName || "Future Student"}</h3><p>{studentId}</p></div></div>
+              <div className="digital-id-person">{photo ? <img src={photo} alt="" /> : <span>YOU</span>}<div><small>EFFU STUDENT</small><h3>{studentName || "Future Student"}</h3><p>{studentId}</p></div></div>
               <div className="digital-id-fields"><span><small>CAMPUS</small>{world.short}</span><span><small>PROGRAM</small>{major || "Exploring"}</span><span><small>STATUS</small>{enrolled ? "Active preview" : "Guest"}</span></div>
-              <footer><b>EVERY FUTURE FULFILLED.</b><span>Not an official college ID</span></footer>
+              <footer><b>EVERY FUTURE FULFILLED.</b><span>Student Experience Pass</span></footer>
             </div>
             <div className="badge-actions"><button onClick={downloadBadge}>DOWNLOAD MY DIGITAL BADGE</button><button className="apple-wallet" onClick={() => setWalletNote(true)}>＋ Add to Apple Wallet</button></div>
             {walletNote && <div className="wallet-message"><b>Your pass design is ready for connection.</b><p>A genuine Apple Wallet pass must be issued and cryptographically signed using Esther Funds Foundation’s Apple Developer Pass Type ID and certificate. Until that secure connection is added, download the badge to your phone—EFF University will not generate a fake or unsafe wallet pass.</p><button onClick={() => setWalletNote(false)}>Got it</button></div>}
@@ -282,13 +333,19 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
           <section className="portal-panel map-panel">
             <span className="panel-number">02</span><div className="panel-heading"><small>CAMPUS MAP</small><h2>Learn where support lives</h2></div>
             <div className="building-list">{world.buildings.map(([name, purpose], index) => <article key={name}><span>{String.fromCharCode(65 + index)}</span><div><b>{name}</b><p>{purpose}</p></div></article>)}</div>
-            <div className="tradition-card"><small>CAMPUS TRADITION</small><b>{world.tradition}</b><p>A fictional welcome tradition celebrating courage, community, and the future you are building.</p></div>
+            <div className="tradition-card"><small>CAMPUS TRADITION</small><b>{world.tradition}</b><p>A welcome tradition celebrating courage, community, and the future you are building.</p></div>
+          </section>
+
+          <section className="portal-panel campus-week-panel">
+            <span className="panel-number">W</span><div className="panel-heading"><small>CAMPUS CULTURE & TRADITIONS</small><h2>A week in your campus life</h2><p>Traditions are where belonging becomes real. Your schedule includes academic work, community, culture, service, rest, and celebration.</p></div>
+            <div className="campus-week">{world.weeklyLife.map(([day, title, description]) => <article key={day}><span>{day}</span><div><h3>{title}</h3><p>{description}</p></div><button onClick={(event) => event.currentTarget.classList.toggle("attending")}>＋ ADD TO MY WEEK</button></article>)}</div>
+            {campus === "legacy" && <div className="culture-note"><b>ABOUT THE HBCU-INSPIRED EXPERIENCE</b><p>EFF University honors the diversity of HBCU life. No single tradition represents every HBCU. This original campus week draws inspiration from documented traditions involving campus markets, the Yard, homecoming, Royal Court, marching bands, chapel, service, student entrepreneurship, and organization life.</p></div>}
           </section>
 
           <section className="portal-panel">
             <span className="panel-number">03</span><div className="panel-heading"><small>HOUSING & RESIDENTIAL EDUCATION</small><h2>Choose where you would live</h2></div>
             <div className="hall-grid">{world.halls.map(([name, details]) => <button className={hall === name ? "selected" : ""} onClick={() => setHall(name)} key={name}><span>{hall === name ? "✓" : "⌂"}</span><b>{name}</b><small>{details}</small></button>)}</div>
-            {hall && <div className="room-assignment"><b>SIMULATED ASSIGNMENT</b><span>{hall} • Room 214 • Fall Preview</span><small>Housing is not guaranteed or reserved. This selection is part of the learning experience only.</small></div>}
+            {hall && <div className="room-assignment"><b>YOUR ROOM ASSIGNMENT</b><span>{hall} • Room 214 • Fall Preview</span><small>Roommate and move-in details will appear during orientation.</small></div>}
           </section>
 
           <section className="portal-panel">
@@ -304,7 +361,7 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
           </section>
 
           <section className="portal-panel">
-            <span className="panel-number">05</span><div className="panel-heading"><small>CENTER FOR STUDENT INVOLVEMENT</small><h2>Find your people</h2><p>Explore organizations, then practice joining up to three. Joining is simulated and sends no information.</p></div>
+            <span className="panel-number">05</span><div className="panel-heading"><small>CENTER FOR STUDENT INVOLVEMENT</small><h2>Find your people</h2><p>Explore campus organizations and join up to three for your first semester.</p></div>
             <div className="club-grid">{world.organizations.map((club) => {
               const joined = clubs.includes(club);
               return <button className={joined ? "joined" : ""} disabled={!joined && clubs.length >= 3} onClick={() => setClubs((current) => joined ? current.filter((item) => item !== club) : [...current, club])} key={club}><span>{joined ? "✓" : "+"}</span>{club}<small>{joined ? "INTEREST FORM SIGNED" : "EXPLORE & JOIN"}</small></button>;
@@ -325,8 +382,7 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
           <section className="portal-panel commencement-panel">
             <span className="panel-number">07</span><div className="panel-heading"><small>OFFICE OF COMMENCEMENT</small><h2>Your future graduation</h2></div>
             <div className="grad-stage"><span>EFFU</span><h3>{studentName || "Future Student"}</h3><p>{selectedMajor?.degree || "College & Career"} Readiness Pathway</p><b>CLASS OF YOUR FUTURE</b></div>
-            <button disabled={!semesterDone} onClick={onGraduate}>ATTEND MY SIMULATED GRADUATION →</button>
-            <p className="legal-note">The completion document is a simulation certificate—not a college degree, diploma, academic credit, license, or professional credential.</p>
+            <button disabled={!semesterDone} onClick={onGraduate}>ATTEND MY GRADUATION →</button>
           </section>
         </div>
       </div>
@@ -348,10 +404,10 @@ function HomewardPathway({ onCampus }: { onCampus: () => void }) {
   const percent = Math.round(steps.length / milestones.length * 100);
   return <section className="homeward-page">
     <div className="homeward-hero">
-      <p className="eyebrow light">A SEPARATE EFF UNIVERSITY SIMULATION</p>
+      <p className="eyebrow light">A SEPARATE EFF UNIVERSITY PATHWAY</p>
       <h1>Homeward Scholars<br/><em>Education Bridge</em></h1>
       <p>A dignity-centered pathway for learners experiencing homelessness or housing instability—beginning with safety and a secondary credential, then building toward college, training, employment, and long-term support.</p>
-      <div className="dignity-note"><b>YOU ARE A STUDENT WITH A FUTURE—NOT A PROBLEM TO BE FIXED.</b><span>This simulation does not determine eligibility or replace a school, housing provider, benefits counselor, or financial-aid administrator.</span></div>
+      <div className="dignity-note"><b>YOU ARE A STUDENT WITH A FUTURE—NOT A PROBLEM TO BE FIXED.</b><span>Build a plan with verified education, housing, benefits, and financial-aid professionals beside you.</span></div>
     </div>
     <div className="homeward-layout">
       <aside><p className="eyebrow">YOUR BRIDGE PLAN</p><strong>{percent}%</strong><div className="progress-track"><i style={{ width: `${percent}%` }} /></div><p>{steps.length} of {milestones.length} planning stations explored</p><a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer">Connect with EFF Student Help ↗</a></aside>
@@ -361,7 +417,7 @@ function HomewardPathway({ onCampus }: { onCampus: () => void }) {
           return <article className={done ? "done" : ""} key={title as string}><button onClick={() => setSteps((current) => done ? current.filter((item) => item !== index) : [...current, index])}><span>{done ? "✓" : String(index + 1).padStart(2, "0")}</span><div><small>BRIDGE STATION</small><h2>{title}</h2><p>{copy}</p></div><b>{done ? "EXPLORED" : "MARK EXPLORED"}</b></button><div>{(tools as string[]).map((tool) => <span key={tool}>□ {tool}</span>)}</div></article>;
         })}
         <section className="verified-resources">
-          <p className="eyebrow light">VERIFIED STARTING POINTS</p><h2>Move from simulation to support.</h2>
+          <p className="eyebrow light">VERIFIED STARTING POINTS</p><h2>Connect your plan to support.</h2>
           <div><a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer"><b>EFF National Student Help Desk</b><span>Aid navigation, advocacy, scholarships, Emergency Grant/Name Your Need, FAFSA and school-balance support.</span></a>
           <a href="https://nche.ed.gov/" target="_blank" rel="noreferrer"><b>National Center for Homeless Education</b><span>School rights, local liaison information, and education resources for children and youth experiencing homelessness.</span></a>
           <a href="https://www.ed.gov/adult-programs" target="_blank" rel="noreferrer"><b>U.S. Department of Education Adult Programs</b><span>Adult education, literacy, state programs, career pathways, and high-school-equivalency information.</span></a>
@@ -412,7 +468,7 @@ export default function Home() {
     <main>
       <header className="university-header">
         <button className="wordmark" onClick={() => navigate("home")} aria-label="EFF University home">
-          <span className="crest">EFF</span>
+          <img className="header-crest" src="/eff-university-dove-crest.png" alt="EFF University dove crest" />
           <span><b>EFF UNIVERSITY</b><small>Every Future Fulfilled.</small></span>
         </button>
         <nav aria-label="University navigation">
@@ -463,7 +519,7 @@ export default function Home() {
             <div className="section-intro">
               <p className="eyebrow">YOUR VIRTUAL CAMPUS</p>
               <h2>Walk through college<br/><em>before college walks over you.</em></h2>
-              <p>EFF University is a guided simulation—not an accredited college and not a promise of admission or aid. It is a place to practice the decisions that shape access, persistence, and completion.</p>
+              <p>EFF University is an immersive college-and-career learning experience where every building, decision, and milestone prepares you to enter higher education with confidence.</p>
             </div>
             <div className="campus-grid">
               {[
@@ -521,7 +577,7 @@ export default function Home() {
           </section>
 
           <section className="support-banner">
-            <div><span className="hand">♡</span><p className="eyebrow">WHEN THE SIMULATION BECOMES REAL LIFE</p><h2>You do not have to solve it alone.</h2></div>
+            <div><span className="hand">♡</span><p className="eyebrow">WHEN CAMPUS CHALLENGES BECOME REAL</p><h2>You do not have to solve it alone.</h2></div>
             <p>EFF connects students to scholarship resources, emergency assistance requests, FAFSA guidance, balance advocacy, and a national help desk.</p>
             <a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer">Visit the Student Help Center ↗</a>
           </section>
@@ -533,7 +589,7 @@ export default function Home() {
           <div className="page-banner">
             <p className="eyebrow light">EFF UNIVERSITY ACADEMIC CATALOG</p>
             <h1>Find the subject that<br/><em>makes you lean forward.</em></h1>
-            <p>Browse simulated academic pathways and sample courses. Use this catalog to explore—not to limit what you can become.</p>
+            <p>Browse academic pathways and sample courses. Use this catalog to explore—not to limit what you can become.</p>
           </div>
           <div className="catalog-tools">
             <label><span>SEARCH PROGRAMS</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Try nursing, design, technology..." /></label>
@@ -598,7 +654,7 @@ export default function Home() {
                 );
               })}
               <div className="orientation-next">
-                <div><span>✦</span><h3>Ready for the money conversation?</h3><p>Open your simulated award packet and discover what “financial aid” really means.</p></div>
+                <div><span>✦</span><h3>Ready for the money conversation?</h3><p>Open your award packet and discover what “financial aid” really means.</p></div>
                 <button onClick={() => navigate("aid")}>Go to Financial Aid Lab →</button>
               </div>
             </div>
@@ -609,14 +665,14 @@ export default function Home() {
       {view === "aid" && (
         <section className="aid-page">
           <div className="page-banner aid-banner">
-            <p className="eyebrow light">FINANCIAL AID OFFICE • SIMULATION</p>
+            <p className="eyebrow light">OFFICE OF FINANCIAL AID</p>
             <h1>Your award looks big.<br/><em>But what will college cost?</em></h1>
             <p>This practice packet teaches you to separate free money, money you earn later, and money you must repay.</p>
           </div>
           <div className="aid-workspace">
             <div className="award-letter">
-              <div className="letterhead"><span className="crest small">EFF</span><div><b>EFF UNIVERSITY</b><small>Office of Student Financial Possibility</small></div><p>SIMULATED<br/>AWARD YEAR</p></div>
-              <div className="congratulations"><small>Dear Future Student,</small><h2>Congratulations!</h2><p>You are eligible to consider the following estimated financial-aid package. This is a learning simulation, not an offer of actual funding.</p></div>
+              <div className="letterhead"><img className="letter-crest" src="/eff-university-dove-crest.png" alt="" /><div><b>EFF UNIVERSITY</b><small>Office of Student Financial Possibility</small></div><p>FINANCIAL AID<br/>AWARD YEAR</p></div>
+              <div className="congratulations"><small>Dear Future Student,</small><h2>Congratulations!</h2><p>Your financial-aid award is ready for review. Read every category carefully so you understand free aid, earned aid, borrowing, and the remaining cost.</p></div>
               <div className="cost-row"><span>Estimated cost of attendance</span><label>$ <input type="number" value={tuition} onChange={(e) => setTuition(Number(e.target.value))} /></label></div>
               <div className="award-section"><h3>GIFT AID <span>Usually does not have to be repaid</span></h3>
                 <div><span>Institutional grant</span><label>$ <input type="number" value={grants} onChange={(e) => setGrants(Number(e.target.value))} /></label></div>
@@ -688,10 +744,10 @@ export default function Home() {
       {view === "certificate" && (
         <section className="completion-page">
           <p className="eyebrow">EFF UNIVERSITY • EXPERIENCE COMPLETE</p>
-          <h1>Welcome to your<br/><em>simulated graduation.</em></h1>
+          <h1>Welcome to your<br/><em>graduation.</em></h1>
           <p>You explored academic pathways, learned where support lives, decoded college costs, joined campus life, and practiced responding to real persistence challenges.</p>
           <div className="certificate">
-            <span className="cert-crown">♛</span><small>ESTHER FUNDS FOUNDATION</small><h2>EFF University</h2><p>SIMULATION DEGREE OF COLLEGE & CAREER READINESS</p><span>This recognizes</span><strong>Future Student</strong><p>for completing the EFF University campus, orientation, and college-persistence learning experience</p><div><span>Educational simulation • No academic credit</span><b>EVERY FUTURE FULFILLED.</b></div>
+            <img className="certificate-logo" src="/eff-university-dove-crest.png" alt="EFF University dove crest" /><small>ESTHER FUNDS FOUNDATION</small><h2>EFF University</h2><p>DEGREE OF COLLEGE & CAREER READINESS</p><span>This recognizes</span><strong>Future Student</strong><p>for completing the EFF University campus, orientation, and college-persistence learning experience</p><div><span>Education experience credential</span><b>EVERY FUTURE FULFILLED.</b></div>
           </div>
           <p className="legal-note">This celebratory simulation degree is not a high-school diploma, GED or equivalency credential, college degree, academic credit, license, or professional certification.</p>
           <div className="completion-actions"><button className="primary" onClick={() => window.print()}>Print certificate</button><button className="outline" onClick={() => navigate("majors")}>Keep exploring majors</button><a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer">Get real student support ↗</a></div>
@@ -699,8 +755,8 @@ export default function Home() {
       )}
 
       <footer>
-        <div className="wordmark footer-mark"><span className="crest">EFF</span><span><b>EFF UNIVERSITY</b><small>Every Future Fulfilled.</small></span></div>
-        <p>A free college-and-career readiness simulation from Esther Funds Foundation. EFF University is an educational experience and is not an accredited degree-granting institution.</p>
+        <div className="wordmark footer-mark"><img className="footer-crest" src="/eff-university-dove-crest.png" alt="EFF University dove crest" /><span><b>EFF UNIVERSITY</b><small>Every Future Fulfilled.</small></span></div>
+        <p>EFF University is an immersive college-and-career readiness experience from Esther Funds Foundation. It is not an accredited degree-granting institution; participation does not create admission, academic credit, financial aid, or enrollment at another institution.</p>
         <div><button onClick={() => navigate("majors")}>Academics</button><button onClick={() => navigate("orientation")}>Orientation</button><a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer">Student Help</a></div>
         <small>© 2026 Esther Funds Foundation • For such a time as this.</small>
       </footer>
