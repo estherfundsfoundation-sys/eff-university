@@ -376,6 +376,7 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
           const item = campusWorlds[key];
           return <article className={`${key} ${applicationCampus === key ? "chosen" : ""}`} key={key}>
             <small>{key === "legacy" ? "HBCU-INSPIRED CAMPUS" : "METROPOLITAN RESEARCH CAMPUS"}</small>
+            {key === "legacy" && <img className="world-card-photo" src="/effu-marching-band-campus-life.png" loading="lazy" decoding="async" alt="EFF University Royal Sound marching band and dancers performing in royal purple and cream" />}
             <h2>{item.label}</h2><p>{item.description}</p>
             <div><span>Named campus buildings</span><span>Housing selection</span><span>Student organizations</span><span>Course registration</span><span>Graduation ceremony</span></div>
             <button onClick={() => setApplicationCampus(key)}>{applicationCampus === key ? "CAMPUS SELECTED ✓" : `Select ${item.short} →`}</button>
