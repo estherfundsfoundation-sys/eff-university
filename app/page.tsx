@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Major = {
   name: string;
@@ -114,6 +114,15 @@ const formatMoney = (value: number) => new Intl.NumberFormat("en-US", { style: "
 
 type View = "home" | "majors" | "courses" | "families" | "orientation" | "aid" | "simulation" | "campuslife" | "homeward" | "certificate";
 type CampusKind = "legacy" | "metropolitan";
+
+const universityAlerts: { department: string; title: string; detail: string; action: string; view: View }[] = [
+  { department: "EFFU ATHLETICS", title: "First Doves Game This Friday", detail: "Kickoff is at 7:00 PM in Fulfilled Futures Stadium. Open Campus Life to claim your practice ticket and learn game-day traditions.", action: "GAME DAY", view: "campuslife" },
+  { department: "OFFICE OF THE REGISTRAR", title: "Don’t Miss the Enrollment Period", detail: "Build your mock schedule, confirm your major, and complete EFFU enrollment before the preview term begins.", action: "ENROLL NOW", view: "campuslife" },
+  { department: "NEW STUDENT ORIENTATION", title: "Your Orientation Checklist Is Ready", detail: "Learn campus language, meet your support team, practice emailing a professor, and prepare for real college emergencies.", action: "START ORIENTATION", view: "orientation" },
+  { department: "OFFICE OF FINANCIAL AID", title: "Review Your Financial-Aid Award Packet", detail: "Decode grants, scholarships, work-study, loans, and the remaining balance before making a college decision.", action: "REVIEW AID", view: "aid" },
+  { department: "HOUSING & RESIDENCE LIFE", title: "Residence Hall Check-In Is Open", detail: "Choose a hall, meet your resident assistant, review the move-in list, and download your practice housing assignment.", action: "CHECK IN", view: "campuslife" },
+  { department: "STUDENT ACTIVITIES", title: "The Organization Fair Starts Today", detail: "Explore 100+ organizations, practice joining a club, and find students who share your interests and goals.", action: "EXPLORE CAMPUS", view: "campuslife" },
+];
 
 const campusWorlds = {
   legacy: {
@@ -694,6 +703,9 @@ export default function Home() {
   const [aidDecision, setAidDecision] = useState<string | null>(null);
   const [challengeIndex, setChallengeIndex] = useState(0);
   const [challengeSolved, setChallengeSolved] = useState(false);
+  const [alertIndex, setAlertIndex] = useState(0);
+  const [alertBarVisible, setAlertBarVisible] = useState(true);
+  const [popupVisible, setPopupVisible] = useState(false);
 
   const schools = useMemo(() => ["All schools", ...Array.from(new Set(majors.map((major) => major.school))).sort()], []);
   const filtered = majors.filter((major) => {
@@ -704,6 +716,21 @@ export default function Home() {
   const billAfterFreeAid = Math.max(0, tuition - freeAid);
   const remainingAfterLoans = Math.max(0, billAfterFreeAid - loans);
   const orientationPercent = Math.round((orientationDone.length / orientationSteps.length) * 100);
+
+  useEffect(() => {
+    const firstPopup = window.setTimeout(() => setPopupVisible(true), 1800);
+    const rotateAlerts = window.setInterval(() => {
+      setPopupVisible(false);
+      window.setTimeout(() => {
+        setAlertIndex((current) => (current + 1) % universityAlerts.length);
+        setPopupVisible(true);
+      }, 350);
+    }, 9000);
+    return () => {
+      window.clearTimeout(firstPopup);
+      window.clearInterval(rotateAlerts);
+    };
+  }, []);
 
   function navigate(next: typeof view) {
     setView(next);
@@ -717,6 +744,18 @@ export default function Home() {
 
   return (
     <main>
+      {alertBarVisible && <section className="university-alert" aria-label="EFF University campus alert">
+        <button className="alert-arrow" onClick={() => setAlertIndex((alertIndex - 1 + universityAlerts.length) % universityAlerts.length)} aria-label="Previous campus alert">‹</button>
+        <span className="alert-label"><i /> CAMPUS UPDATE</span>
+        <div className="alert-message">
+          <small>{universityAlerts[alertIndex].department}</small>
+          <b>{universityAlerts[alertIndex].title}</b>
+          <p>{universityAlerts[alertIndex].detail}</p>
+        </div>
+        <button className="alert-action" onClick={() => navigate(universityAlerts[alertIndex].view)}>{universityAlerts[alertIndex].action} →</button>
+        <button className="alert-arrow" onClick={() => setAlertIndex((alertIndex + 1) % universityAlerts.length)} aria-label="Next campus alert">›</button>
+        <button className="alert-dismiss" onClick={() => setAlertBarVisible(false)} aria-label="Dismiss campus alert">×</button>
+      </section>}
       <header className="university-header">
         <button className="wordmark" onClick={() => navigate("home")} aria-label="EFF University home">
           <img className="header-crest" src="/eff-university-dove-crest.png" alt="EFF University dove crest" />
@@ -735,6 +774,17 @@ export default function Home() {
         </nav>
         <button className="portal-button" onClick={() => navigate("campuslife")}>APPLY NOW <span>→</span></button>
       </header>
+
+      {popupVisible && <aside className="campus-popup" role="status" aria-live="polite">
+        <button onClick={() => setPopupVisible(false)} aria-label="Dismiss notification">×</button>
+        <div className="popup-icon">EFFU</div>
+        <div>
+          <small>NEW CAMPUS NOTIFICATION</small>
+          <b>{universityAlerts[alertIndex].title}</b>
+          <p>{universityAlerts[alertIndex].detail}</p>
+          <button onClick={() => { setPopupVisible(false); navigate(universityAlerts[alertIndex].view); }}>{universityAlerts[alertIndex].action} →</button>
+        </div>
+      </aside>}
 
       {view === "home" && (
         <>
