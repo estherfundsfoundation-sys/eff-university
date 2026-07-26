@@ -43,10 +43,18 @@ const lessons: Array<{ facts: string[]; scenario: string; questions: Question[] 
   ]},
 ];
 
+const lessonExtras = [
+  { terms: [["Official source", "The current website, policy, or staff member responsible for the requirement."], ["Documentation", "A dated record of what was submitted, requested, or explained."], ["Privacy boundary", "Information that should not be shared unless a verified official process requires it."]], steps: ["Name the decision or deadline.", "Find the office responsible for it.", "Write one specific question.", "Record the answer and your next action."] },
+  { terms: [["Grant", "Gift aid that generally does not require repayment, subject to its rules."], ["Loan", "Borrowed money that generally must be repaid, often with interest."], ["Net cost", "The cost remaining after grants and scholarships are subtracted."], ["Work-study", "Eligibility to earn wages through qualifying employment—not automatic bill credit."]], steps: ["List the full estimated cost.", "Separate grants and scholarships from loans.", "Identify direct charges and estimated expenses.", "Calculate the remaining gap before borrowing."] },
+  { terms: [["Hold", "A restriction placed on an account that may block registration, records, housing, or another action."], ["Appeal", "A formal request for a decision to be reviewed under an institution’s process."], ["Escalation", "A respectful request for the next authorized person or review process."], ["Student Accounts", "The office that commonly handles bills, balances, payments, and refunds."]], steps: ["Copy the exact hold or warning.", "Identify the responsible office and deadline.", "Ask for written requirements and options.", "Save the response and follow up before the deadline."] },
+  { terms: [["Time budget", "A weekly plan that includes every fixed and flexible responsibility."], ["Credit hour", "A measure associated with course enrollment; it is not the same as one hour of weekly work."], ["Early alert", "A warning or outreach that identifies academic risk before the end of a term."], ["Contingency plan", "A backup action for predictable disruptions such as work, transportation, or caregiving."]], steps: ["Place fixed obligations on a weekly calendar.", "Add class preparation and study blocks.", "Check travel, rest, work, and care conflicts.", "Identify whom to contact when the plan breaks."] },
+];
+
 export default function CourseExperience({ module, moduleIndex, pathwayName, passed, onClose, onPass }: {
   module: string; moduleIndex: number; pathwayName: string; passed: boolean; onClose: () => void; onPass: (score: number) => Promise<void>;
 }) {
   const lesson = useMemo(() => lessons[moduleIndex % lessons.length], [moduleIndex]);
+  const extra = useMemo(() => lessonExtras[moduleIndex % lessonExtras.length], [moduleIndex]);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [result, setResult] = useState<{ score: number; passed: boolean } | null>(null);
   const [saving, setSaving] = useState(false);
@@ -59,7 +67,10 @@ export default function CourseExperience({ module, moduleIndex, pathwayName, pas
   return <div className="course-modal" role="dialog" aria-modal="true" aria-labelledby="course-title"><article className="course-workspace">
     <button className="course-close" onClick={onClose} aria-label="Close course">×</button>
     <header><small>{pathwayName} • COURSE {String(moduleIndex + 1).padStart(2, "0")}</small><h2 id="course-title">{module}</h2><p>Complete the lesson and earn at least 2 of 3 points to pass.</p></header>
-    <section className="course-lesson"><h3>What you need to know</h3>{lesson.facts.map((fact) => <p key={fact}>{fact}</p>)}</section>
+    <section className="course-objectives"><small>LEARNING OBJECTIVES</small><h3>By the end of this course, you will be able to:</h3><ul><li>Explain the central idea in <b>{module}</b>.</li><li>Apply the idea to a realistic education decision.</li><li>Identify a safe, specific next step and the correct source of help.</li></ul></section>
+    <section className="course-lesson"><small>GUIDED READING</small><h3>Read this before taking the quiz</h3>{lesson.facts.map((fact, index) => <article key={fact}><b>{String(index + 1).padStart(2, "0")}</b><p>{fact}</p></article>)}</section>
+    <section className="course-terms"><h3>Key terms</h3><dl>{extra.terms.map(([term, definition]) => <div key={term}><dt>{term}</dt><dd>{definition}</dd></div>)}</dl></section>
+    <section className="course-checklist"><h3>Use this four-step method</h3><ol>{extra.steps.map((step) => <li key={step}>{step}</li>)}</ol></section>
     <section className="course-scenario"><small>REAL-LIFE PRACTICE</small><h3>What would you do?</h3><p>{lesson.scenario}</p></section>
     <form onSubmit={grade}><h3>Graded knowledge check</h3>{lesson.questions.map((question, index) => <fieldset key={question.prompt}><legend><span>{index + 1}</span>{question.prompt}</legend>{question.options.map((option, optionIndex) => <label key={option}><input required type="radio" name={`q-${index}`} checked={answers[index] === optionIndex} onChange={() => setAnswers({ ...answers, [index]: optionIndex })} />{option}</label>)}{result && <p className={answers[index] === question.correct ? "answer-correct" : "answer-review"}>{answers[index] === question.correct ? "Correct. " : "Review: "}{question.explanation}</p>}</fieldset>)}<button disabled={saving}>{saving ? "SAVING RESULT…" : passed ? "RETAKE KNOWLEDGE CHECK" : "SUBMIT MY ANSWERS"}</button></form>
     {result && <div className={result.passed ? "course-result passed" : "course-result"}><b>{result.passed ? `PASSED — ${result.score}/3` : `${result.score}/3 — TRY AGAIN`}</b><p>{result.passed ? "This course is recorded as complete in your EFFU simulation record." : "Review the explanations, then try again."}</p>{result.passed && <button onClick={onClose}>CONTINUE MY PATHWAY →</button>}</div>}

@@ -53,3 +53,19 @@ test("pathway graduation requires passing graded course knowledge checks", async
   assert.match(portal, /Congratulations/);
   assert.match(portal, /PRINT MY COMPLETION CERTIFICATE/);
 });
+
+test("new students receive a visible reusable acceptance letter and guided lessons before quizzes", async () => {
+  const [portal, letter, courses] = await Promise.all([
+    readFile(new URL("app/account/AccountPortal.tsx", root), "utf8"),
+    readFile(new URL("app/account/AcceptanceLetter.tsx", root), "utf8"),
+    readFile(new URL("app/account/CourseExperience.tsx", root), "utf8"),
+  ]);
+  assert.match(portal, /setAcceptance/);
+  assert.match(portal, /OPEN MY ACCEPTANCE LETTER/);
+  assert.match(letter, /you’re accepted/);
+  assert.match(letter, /SIMULATION_WATERMARK/);
+  assert.match(courses, /LEARNING OBJECTIVES/);
+  assert.match(courses, /GUIDED READING/);
+  assert.match(courses, /Key terms/);
+  assert.match(courses, /four-step method/);
+});

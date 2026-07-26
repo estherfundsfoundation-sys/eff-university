@@ -6,6 +6,7 @@ import { pathways } from "../../lib/eff-pathways";
 import { CONSENT_VERSION, FULL_SIMULATION_DISCLAIMER, SIMULATION_WATERMARK } from "../../lib/launch-readiness";
 import ScholarshipPanel from "./ScholarshipPanel";
 import CourseExperience from "./CourseExperience";
+import AcceptanceLetter, { type AcceptanceDetails } from "./AcceptanceLetter";
 
 type Mode = "apply" | "signin" | "reset";
 type Metadata = {
@@ -30,6 +31,7 @@ export default function AccountPortal() {
   const [guardian, setGuardian] = useState(false);
   const [agePath, setAgePath] = useState("");
   const [activeModule, setActiveModule] = useState<number | null>(null);
+  const [acceptance, setAcceptance] = useState<AcceptanceDetails | null>(null);
 
   useEffect(() => {
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
@@ -49,6 +51,10 @@ export default function AccountPortal() {
           storeSession(hydrated);
           setSession(hydrated);
           setMessage(hash.get("type") === "recovery" ? "Your secure account link is active." : "Your email is confirmed. Welcome to EFF University!");
+          if (hash.get("type") !== "recovery") {
+            const profile = (user.user_metadata || {}) as Metadata;
+            setAcceptance({ displayName: profile.display_name || "EFFU Student", studentId: profile.student_id || "EFFU Student", pathwayName: profile.pathway_name || "EFFU Pathway", acceptedAt: profile.accepted_at || new Date().toISOString() });
+          }
         } catch { setError("Your confirmation link expired. Please sign in or request a new link."); }
       });
       return;
@@ -86,6 +92,7 @@ export default function AccountPortal() {
         interests: interests.trim(), accepted_at: acceptedAt, completed_modules: [], age_path: agePath,
         consent_history: [{ version: CONSENT_VERSION, accepted_at: acceptedAt, age_path: agePath }],
       });
+      setAcceptance({ displayName: displayName.trim(), studentId, pathwayName: selectedPathway.name, acceptedAt });
       if (result.access_token) { setSession(result); setMessage("Your account is active. Welcome to EFF University!"); }
       else setMessage(`Congratulations, ${displayName}! Your acceptance letter and account-confirmation link are on the way to ${email}. Check your inbox and spam folder.`);
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Your application could not be submitted."); }
@@ -147,6 +154,7 @@ export default function AccountPortal() {
         <div className="dashboard-grid">
           <section className="dashboard-main" id="my-pathway"><p className="eyebrow">MY PATHWAY</p><h2>{pathway.name}</h2><p>{pathway.description}</p><div className="course-gate-note"><b>COURSES, QUIZZES & TESTS</b><span>Open each lesson, complete its real-life scenario, and score at least 2 of 3. Courses cannot be marked complete without passing.</span></div><ol className="account-modules">{pathway.modules.map((module, index) => <li className={completed.includes(module) ? "complete" : ""} key={module}><button disabled={loading} onClick={() => setActiveModule(index)}><span>{completed.includes(module) ? "✓" : String(index + 1).padStart(2, "0")}</span><b>{module}</b><small>{completed.includes(module) ? `Passed • ${metadata.quiz_scores?.[module] || 2}/3 • Review course` : "Open lesson & graded quiz"}</small></button></li>)}</ol></section>
           <aside className="dashboard-side">
+            <article><small>OFFICE OF ADMISSIONS</small><h3>My acceptance letter</h3><p>Reopen or print your personalized EFFU educational-simulation acceptance letter at any time.</p><button onClick={() => setAcceptance({ displayName: metadata.display_name || "EFFU Student", studentId: metadata.student_id || "EFFU Student", pathwayName: pathway.name, acceptedAt: metadata.accepted_at || new Date().toISOString() })}>OPEN MY ACCEPTANCE LETTER</button></article>
             <article><small>QUICK ACTION</small><h3>Continue your simulation</h3><p>Enter the full college experience to explore majors, housing, financial aid, schedules, organizations, emergencies, and graduation.</p><a href="/#apply">ENTER EFF UNIVERSITY →</a></article>
             <article><small>PRIVATE RECORD</small><h3>Continuity Passport</h3><p>Your pathway and completed modules are saved securely to your account.</p><a href="/eff-university/passport">OPEN PASSPORT →</a></article>
             <article><small>NEED HELP?</small><h3>EFFU Tech Department</h3><p>Get help signing in, confirming your email, resetting your password, or navigating your student portal.</p><a href="/tech-support">GET ACCOUNT HELP →</a></article>
@@ -156,6 +164,7 @@ export default function AccountPortal() {
         {completed.length >= pathway.modules.length && <section className="graduation-unlock official-simulation-document"><img src="/eff-university-dove-crest.png" alt="" /><div><p className="eyebrow light">EFFU COMMENCEMENT</p><h2>Congratulations, {metadata.display_name || "graduate"}!</h2><p>You graduated from the <b>{pathway.name}</b> educational experience by passing every required course and knowledge check. Your scholarship application is now unlocked below.</p><button onClick={() => printCompletionCertificate(pathway.name)}>PRINT MY COMPLETION CERTIFICATE →</button><small>{SIMULATION_WATERMARK}</small></div></section>}
         <ScholarshipPanel session={session} unlocked={completed.length >= pathway.modules.length} />
         {activeModule !== null && <CourseExperience module={pathway.modules[activeModule]} moduleIndex={activeModule} pathwayName={pathway.name} passed={completed.includes(pathway.modules[activeModule])} onClose={() => setActiveModule(null)} onPass={(score) => completeCourse(pathway.modules[activeModule], score)} />}
+        {acceptance && <AcceptanceLetter details={acceptance} onClose={() => setAcceptance(null)} />}
         <p className="dashboard-simulation-disclaimer"><b>{SIMULATION_WATERMARK}</b>{FULL_SIMULATION_DISCLAIMER}</p>
       </section>
     </main>;
@@ -192,6 +201,7 @@ export default function AccountPortal() {
       </form>}
       {mode === "signin" && <form className="account-signin" onSubmit={submitSignIn}><div className="form-heading"><span>02</span><div><small>EFFU STUDENT ACCESS</small><h2>Student Sign In</h2><p>Return to your pathway, saved progress, and student portal.</p></div></div><label>Email address<input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></label><label>Password<input required type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" /></label><button className="account-submit" disabled={loading}>{loading ? "SIGNING IN…" : "OPEN MY STUDENT PORTAL →"}</button><button type="button" className="text-button" onClick={() => setMode("reset")}>I forgot my password</button></form>}
       {mode === "reset" && <form className="account-signin" onSubmit={reset}><div className="form-heading"><span>03</span><div><small>EFFU TECH DEPARTMENT</small><h2>Reset Your Password</h2><p>We will send a secure reset link if an account exists for this email.</p></div></div><label>Email address<input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></label><button className="account-submit" disabled={loading}>{loading ? "REQUESTING LINK…" : "EMAIL MY RESET LINK →"}</button><a className="tech-inline" href="/tech-support">Still need help? Visit the EFFU Tech Department.</a></form>}
+      {acceptance && <AcceptanceLetter details={acceptance} onClose={() => setAcceptance(null)} />}
     </section>
   </main>;
 }
