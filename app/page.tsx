@@ -422,6 +422,7 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
         <div className="acceptance-share">
           <h3>Make the moment yours.</h3>
           <p>Add your email to prepare a personalized acceptance message in your email app, or download a social post with your name, photo, major, and <b>@estherfundsfoundation</b>.</p>
+          <div className="official-acceptance-template"><iframe src="https://www.canva.com/design/DAHQfuqzjI0/view?embed" title="Official EFF University acceptance graphic template" loading="lazy" /><span><b>YOUR OFFICIAL EFFU ACCEPTANCE GRAPHIC</b><small>Add your photo, name, and student stage in Canva, then download and share it with @estherfundsfoundation.</small></span></div>
           <label>Email address <input type="email" value={studentEmail} onChange={(event) => setStudentEmail(event.target.value)} placeholder="student@example.com" /></label>
           <div><button disabled={!studentEmail} onClick={emailAcceptance}>EMAIL MY LETTER</button><button onClick={downloadAcceptanceGraphic}>DOWNLOAD “I’M ACCEPTED” GRAPHIC</button><a href="https://canva.link/3tulwxjw3jszekl" target="_blank" rel="noreferrer">PERSONALIZE THE OFFICIAL CANVA TEMPLATE ↗</a></div>
           <small>Your email and photo stay on this device. “Email my letter” opens your email app with the message prepared for you to review and send.</small>
@@ -770,7 +771,8 @@ export default function Home() {
           <button onClick={() => navigate("families")}>Parents & Families</button>
           <button onClick={() => navigate("homeward")}>Education Bridge</button>
           <button onClick={goToOrganizations}>For Organizations</button>
-          <a href="/community">Student Community</a>
+          <a href="/resources">College Resources</a>
+          <a href="/community">Student Login</a>
         </nav>
         <button className="portal-button" onClick={() => navigate("campuslife")}>APPLY NOW <span>→</span></button>
       </header>
