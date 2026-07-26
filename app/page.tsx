@@ -89,7 +89,7 @@ const challenges = [
 
 const formatMoney = (value: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
 
-type View = "home" | "majors" | "orientation" | "aid" | "simulation" | "campuslife" | "homeward" | "certificate";
+type View = "home" | "majors" | "courses" | "families" | "orientation" | "aid" | "simulation" | "campuslife" | "homeward" | "certificate";
 type CampusKind = "legacy" | "metropolitan";
 
 const campusWorlds = {
@@ -175,6 +175,7 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
   const [educationStage, setEducationStage] = useState("");
   const [academicGoal, setAcademicGoal] = useState("");
   const [goalStatement, setGoalStatement] = useState("");
+  const [studentEmail, setStudentEmail] = useState("");
   const [studentId, setStudentId] = useState("");
   const [photo, setPhoto] = useState("");
   const [walletNote, setWalletNote] = useState(false);
@@ -184,6 +185,9 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
   const [scheduleBuilt, setScheduleBuilt] = useState(false);
   const [enrolled, setEnrolled] = useState(false);
   const [semesterDone, setSemesterDone] = useState(false);
+  const [campusCash, setCampusCash] = useState(3200);
+  const [moneyRound, setMoneyRound] = useState(0);
+  const [moneyLessons, setMoneyLessons] = useState<string[]>([]);
   const world = campus ? campusWorlds[campus] : null;
   const completion = [campus, major, hall, clubs.length > 0, scheduleBuilt, enrolled, semesterDone].filter(Boolean).length;
 
@@ -235,6 +239,76 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
     link.click();
   }
 
+  function emailAcceptance() {
+    const subject = encodeURIComponent(`My EFF University acceptance letter — ${studentName || "Future Student"}`);
+    const body = encodeURIComponent(`Congratulations, ${studentName || "Future Student"}!\n\nYou have been welcomed to ${world?.short || "EFF University"} in the ${major} pathway for the Fall Preview term.\n\nEFFU Student ID: ${studentId}\n\nYour next step is to accept your offer, complete enrollment and begin orientation.\n\nEvery Future Fulfilled.\nEsther Funds Foundation\n\nEFF University is an immersive college-and-career readiness experience and is not an accredited degree-granting institution.`);
+    window.location.href = `mailto:${encodeURIComponent(studentEmail)}?subject=${subject}&body=${body}`;
+  }
+
+  async function downloadAcceptanceGraphic() {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1080;
+    canvas.height = 1350;
+    const context = canvas.getContext("2d");
+    if (!context || !world) return;
+    context.fillStyle = "#42127F";
+    context.fillRect(0, 0, 1080, 1350);
+    context.fillStyle = "#2A075B";
+    context.fillRect(0, 0, 1080, 165);
+    context.fillStyle = "#B799E3";
+    for (let x = 40; x < 1080; x += 80) context.fillRect(x, 1160, 12, 120);
+    context.fillStyle = "#F5F0E6";
+    context.fillRect(65, 210, 950, 845);
+    context.strokeStyle = "#B799E3";
+    context.lineWidth = 12;
+    context.strokeRect(90, 235, 900, 795);
+    context.textAlign = "center";
+    context.fillStyle = "#FFFFFF";
+    context.font = "700 48px Arial";
+    context.fillText("EFF UNIVERSITY", 540, 105);
+    context.fillStyle = "#42127F";
+    context.font = "700 110px Arial";
+    context.fillText("I'M ACCEPTED!", 540, 385);
+    if (photo) {
+      const image = new Image();
+      image.src = photo;
+      await new Promise<void>((resolve) => { image.onload = () => resolve(); image.onerror = () => resolve(); });
+      context.save();
+      context.beginPath();
+      context.arc(540, 590, 150, 0, Math.PI * 2);
+      context.clip();
+      context.drawImage(image, 390, 440, 300, 300);
+      context.restore();
+      context.strokeStyle = "#42127F";
+      context.lineWidth = 12;
+      context.beginPath();
+      context.arc(540, 590, 156, 0, Math.PI * 2);
+      context.stroke();
+    } else {
+      context.fillStyle = "#B799E3";
+      context.beginPath();
+      context.arc(540, 590, 150, 0, Math.PI * 2);
+      context.fill();
+      context.fillStyle = "#42127F";
+      context.font = "700 55px Arial";
+      context.fillText("EFFU", 540, 610);
+    }
+    context.fillStyle = "#42127F";
+    context.font = "700 58px Arial";
+    context.fillText((studentName || "FUTURE STUDENT").toUpperCase().slice(0, 28), 540, 825);
+    context.font = "700 31px Arial";
+    context.fillText(`${major.toUpperCase().slice(0, 40)} • ${world.short.toUpperCase()}`, 540, 885);
+    context.font = "italic 34px Georgia";
+    context.fillText("Every Future Fulfilled.", 540, 965);
+    context.fillStyle = "#FFFFFF";
+    context.font = "700 36px Arial";
+    context.fillText("@estherfundsfoundation", 540, 1245);
+    const link = document.createElement("a");
+    link.download = `${studentName || "future-student"}-accepted-to-effu.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  }
+
   if (!world) return (
     <section className="world-select">
       <div className="world-heading">
@@ -256,16 +330,24 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
       <form className="university-application" onSubmit={(event) => { event.preventDefault(); if (applicationCampus && major && educationStage && academicGoal) chooseCampus(applicationCampus); }}>
         <div className="application-title"><span>EFFU</span><div><small>OFFICE OF UNDERGRADUATE ADMISSIONS</small><h2>Application for Admission</h2><p>Fall Preview Entry Term</p></div></div>
         <div className="application-note"><b>Your privacy matters.</b><p>Use a preferred display name. This experience does not need your legal name, birth date, address, Social Security number, password, financial records, transcripts, or identification documents.</p></div>
+        <div className="application-coach">
+          <b>YOUR APPLICATION COACH</b>
+          <div><span>1</span><p><strong>Explore before choosing.</strong> Compare majors by classes, careers, cost, and more than one pathway.</p></div>
+          <div><span>2</span><p><strong>Answer in your own voice.</strong> A clear, specific goal is stronger than trying to sound perfect.</p></div>
+          <div><span>3</span><p><strong>Check each requirement.</strong> Real schools may also request a fee, transcript, essay, recommendations, or test information.</p></div>
+          <div><span>4</span><p><strong>Save proof.</strong> Keep confirmation emails, deadlines, portal logins, and a copy of everything you submit.</p></div>
+        </div>
         <div className="application-grid">
           <label>Preferred display name<input required value={studentName} onChange={(e) => setStudentName(e.target.value)} placeholder="How should your acceptance letter greet you?" /></label>
           <label>Current education stage<select required value={educationStage} onChange={(e) => setEducationStage(e.target.value)}><option value="">Select your stage</option><option>Middle school explorer</option><option>High-school student</option><option>High-school graduate</option><option>Current college student</option><option>Adult or returning learner</option><option>High-school diploma or equivalency pathway</option></select></label>
           <label>Intended major<select required value={major} onChange={(e) => setMajor(e.target.value)}><option value="">Select a major</option>{majors.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
           <label>Primary education goal<select required value={academicGoal} onChange={(e) => setAcademicGoal(e.target.value)}><option value="">Select your goal</option><option>Explore college for the first time</option><option>Earn a four-year degree</option><option>Begin at community college and transfer</option><option>Compare college and career training</option><option>Return after stopping out</option><option>Prepare for graduate or professional school</option></select></label>
           <label className="full">What future are you working toward? <span>Optional</span><textarea maxLength={280} value={goalStatement} onChange={(e) => setGoalStatement(e.target.value)} placeholder="In a few sentences, tell EFF University what you hope education will make possible..." /></label>
+          <label className="full photo-upload">Optional photo for your student ID and acceptance graphic<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => choosePhoto(e.target.files?.[0])} /><span>{photo ? "Photo selected ✓ — kept only on this device" : "Choose a photo (maximum 5 MB)"}</span></label>
         </div>
         <div className="application-review"><span className={applicationCampus ? "ready" : ""}>{applicationCampus ? "✓" : "1"} Campus selected</span><span className={studentName ? "ready" : ""}>{studentName ? "✓" : "2"} Student profile</span><span className={major ? "ready" : ""}>{major ? "✓" : "3"} Academic interest</span><span className={academicGoal ? "ready" : ""}>{academicGoal ? "✓" : "4"} Education goal</span></div>
         <button type="submit" disabled={!applicationCampus || !studentName || !major || !educationStage || !academicGoal}>SUBMIT MY EFF UNIVERSITY APPLICATION →</button>
-        <p>Submitting creates your personalized admissions experience on this device and sends no application to a real college.</p>
+        <p>Submitting creates your personalized EFFU admissions experience on this device. It does not send an application to another college.</p>
       </form>
       <button className="homeward-entry" onClick={onHelp}><span>♡</span><div><small>A SEPARATE PATHWAY WITH DIGNITY</small><b>Education Bridge for Learners Experiencing Homelessness</b><p>Start with safety, documents, a high-school diploma or equivalency pathway, then build toward college, training, and stable support.</p></div><i>ENTER PATHWAY →</i></button>
     </section>
@@ -284,7 +366,14 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
         <div className="admission-details"><span><small>EFFU STUDENT ID</small><b>{studentId}</b></span><span><small>ENTERING CAMPUS</small><b>{world.short}</b></span><span><small>INTENDED MAJOR</small><b>{major}</b></span><span><small>ENTRY TERM</small><b>Fall Preview</b></span></div>
         <p>Welcome to EFF University. This is where possibility becomes preparation—and where every future deserves to be fulfilled.</p>
         <div className="admission-signature"><span><b>Office of Undergraduate Admissions</b><small>Esther Funds Foundation • EFF University</small></span><img src="/eff-university-dove-crest.png" alt="" /></div>
-        <div className="acceptance-actions"><button onClick={() => window.print()}>PRINT ACCEPTANCE LETTER</button><button onClick={() => setAccepted(true)}>ACCEPT MY OFFER & ENTER MY PORTAL →</button></div>
+        <div className="acceptance-share">
+          <h3>Make the moment yours.</h3>
+          <p>Add your email to prepare a personalized acceptance message in your email app, or download a social post with your name, photo, major, and <b>@estherfundsfoundation</b>.</p>
+          <label>Email address <input type="email" value={studentEmail} onChange={(event) => setStudentEmail(event.target.value)} placeholder="student@example.com" /></label>
+          <div><button disabled={!studentEmail} onClick={emailAcceptance}>EMAIL MY LETTER</button><button onClick={downloadAcceptanceGraphic}>DOWNLOAD “I’M ACCEPTED” GRAPHIC</button></div>
+          <small>Your email and photo stay on this device. “Email my letter” opens your email app with the message prepared for you to review and send.</small>
+        </div>
+        <div className="acceptance-actions"><button onClick={() => window.print()}>PRINT ACCEPTANCE LETTER</button><button onClick={() => setAccepted(true)}>ACCEPT MY OFFER & BEGIN ENROLLMENT →</button></div>
       </div>
       <p className="acceptance-disclaimer">EFF University is an immersive educational experience and is not an accredited degree-granting institution. This letter does not create admission or enrollment at any other institution.</p>
     </section>
@@ -369,6 +458,36 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
             {clubs.length > 0 && <div className="org-confirm"><b>YOUR INVOLVEMENT PLAN</b>{clubs.map((club) => <span key={club}>{club}</span>)}</div>}
           </section>
 
+          <section className="portal-panel athletics-panel">
+            <span className="panel-number">A</span><div className="panel-heading"><small>EFF UNIVERSITY ATHLETICS</small><h2>Welcome to The Flight</h2><p>Cheer for the EFF Doves, meet Valor the Dove, and discover that college athletics includes far more than playing on the field.</p></div>
+            <div className="athletics-scoreboard"><div><small>HOME OF THE</small><strong>EFF DOVES</strong><span>COURAGE • PURPOSE • POSSIBILITY</span></div><b>🕊</b></div>
+            <div className="sports-grid">
+              <article><span>FOOTBALL</span><h3>Fulfilled Stadium</h3><p>Saturday game day with The Flight student section, Royal Sound band, cheer, dance, student media, athletic training, and event operations.</p><button onClick={(event) => event.currentTarget.textContent = "GAME TICKET CLAIMED ✓"}>CLAIM STUDENT TICKET</button></article>
+              <article><span>BASKETBALL</span><h3>Crown Arena</h3><p>Men’s and women’s Doves basketball, Midnight Flight kickoff, community games, pep band, statistics crew, and courtside student reporting.</p><button onClick={(event) => event.currentTarget.textContent = "GAME TICKET CLAIMED ✓"}>CLAIM STUDENT TICKET</button></article>
+              <article><span>GET INVOLVED</span><h3>Careers behind the game</h3><p>Explore sports medicine, coaching, marketing, broadcasting, photography, data, facilities, compliance, nutrition, and sport management.</p><button onClick={(event) => event.currentTarget.textContent = "INTEREST FORM SIGNED ✓"}>JOIN ATHLETICS CREW</button></article>
+            </div>
+          </section>
+
+          <section className="portal-panel money-game">
+            <span className="panel-number">$</span><div className="panel-heading"><small>EFFU CAMPUS WALLET</small><h2>Can your money make it through the month?</h2><p>You begin with <b>$3,200 in practice money</b> for housing, food, books, transportation, and emergencies. Every choice teaches a strategy you can use in real life.</p></div>
+            <div className="wallet-balance"><small>AVAILABLE PRACTICE BALANCE</small><strong>{formatMoney(campusCash)}</strong><span>{moneyRound}/4 decisions completed</span></div>
+            {moneyRound < 4 ? <div className="money-scenario">
+              {[
+                { title: "Your required textbook costs $180.", choices: [["Buy it new today", -180, "You have the book, but you spent the full amount before comparing options."], ["Check rental, library reserve, used and open options", -35, "Strong move: compare access first, then spend only what protects your coursework."], ["Skip the book", 0, "Saving today could put your grade at risk. Contact the professor or library before going without."]] },
+                { title: "Your car needs a $450 repair before work.", choices: [["Use emergency savings and ask about campus transit", -250, "You combined funds with a lower-cost transportation backup."], ["Use a high-cost payday loan", -650, "Fees can make a short emergency last much longer. Compare aid, transit, repair plans, and trusted support first."], ["Miss work without calling", 0, "The balance stays the same, but income and employment may be at risk. Communicate early."]] },
+                { title: "Your meal plan runs out with eight days left.", choices: [["Use the pantry and ask basic-needs staff about meal support", -20, "You protected your budget and used a resource designed for this moment."], ["Put $140 of food on a credit card", -140, "You solved the immediate need, but borrowing can add interest. Ask about food resources too."], ["Stop eating regular meals", 0, "Your wellbeing and academic performance matter. Food support is a valid student resource."]] },
+                { title: "A $780 balance blocks next-term registration.", choices: [["Request an itemized bill, aid review, hold review, and payment options", -200, "Advocacy created time and reduced the immediate payment while the balance is reviewed."], ["Pay the full amount without checking it", -780, "The hold may clear, but always confirm charges and available support before emptying your budget."], ["Ignore the notice", 0, "Registration problems grow when communication stops. Ask specific questions and keep records."]] },
+              ][moneyRound].choices.map(([label, cost, lesson]) => <button key={label as string} onClick={() => { setCampusCash((value) => Math.max(0, value + Number(cost))); setMoneyLessons((items) => [...items, String(lesson)]); setMoneyRound((round) => round + 1); }}><b>{label}</b><span>{Number(cost) === 0 ? "$0 now" : formatMoney(Number(cost))}</span></button>)}
+              <h3>{[
+                "Your required textbook costs $180.",
+                "Your car needs a $450 repair before work.",
+                "Your meal plan runs out with eight days left.",
+                "A $780 balance blocks next-term registration.",
+              ][moneyRound]}</h3>
+            </div> : <div className="money-finish"><b>MONTH COMPLETED</b><h3>You finished with {formatMoney(campusCash)}.</h3><p>The goal is not a perfect score. It is learning to pause, compare, communicate, document, and use support before one expense becomes a withdrawal decision.</p></div>}
+            {moneyLessons.length > 0 && <div className="money-lesson"><b>YOUR LATEST MONEY COACH NOTE</b><p>{moneyLessons[moneyLessons.length - 1]}</p></div>}
+          </section>
+
           <section className="portal-panel semester-panel">
             <span className="panel-number">06</span><div className="panel-heading"><small>FIRST SEMESTER CHECKPOINT</small><h2>Practice staying enrolled</h2></div>
             <div className="semester-events">
@@ -429,6 +548,79 @@ function HomewardPathway({ onCampus }: { onCampus: () => void }) {
   </section>;
 }
 
+const miniCourses = [
+  {
+    code: "EFFU 101", title: "College Language & Campus Navigation", time: "20 minutes",
+    lessons: [
+      ["Syllabus", "The course agreement: dates, grading, attendance, assignments, office hours, and policies. Read it in week one and again before asking about an exception."],
+      ["Credit hour", "A unit schools use to describe coursework. A 3-credit class often requires time in class plus significant work outside class; the exact structure varies."],
+      ["Office hours", "Time a professor sets aside for questions. Arrive with the course, assignment, what you tried, and one clear question."],
+    ],
+    question: "A deadline is unclear. What should you check first?", options: ["The syllabus and course announcements", "A class rumor", "Wait until after the deadline"], correct: 0,
+  },
+  {
+    code: "MONEY 110", title: "Read Your Financial-Aid Offer", time: "25 minutes",
+    lessons: [
+      ["Gift aid", "Grants and scholarships generally do not require repayment, but may have renewal, enrollment, or academic requirements."],
+      ["Work-study", "An opportunity to earn wages through eligible work. It is not normally cash taken off your bill before you work."],
+      ["Loans and the gap", "Loans must be repaid. Compare the school’s full cost with grants and scholarships before deciding whether the remaining gap is manageable."],
+    ],
+    question: "Which amount usually must be earned through a job?", options: ["Work-study", "A scholarship", "A grant"], correct: 0,
+  },
+  {
+    code: "ADV 120", title: "Self-Advocacy & Professional Email", time: "20 minutes",
+    lessons: [
+      ["Useful subject line", "Name the course or issue and the action needed: “BIO 101 — request to review missing assignment.”"],
+      ["Document the facts", "Briefly state what happened, include dates or receipts when appropriate, and avoid accusations."],
+      ["Make a specific request", "Ask for the review, meeting, extension, explanation, or next step you need. Close with appreciation and your preferred contact method."],
+    ],
+    question: "What makes an advocacy email strongest?", options: ["Facts, documentation, and a clear request", "Writing in all caps", "Sending only “help”"], correct: 0,
+  },
+  {
+    code: "PERSIST 130", title: "Emergency & Stay-Enrolled Planning", time: "25 minutes",
+    lessons: [
+      ["Immediate danger", "Prioritize physical safety and contact verified local emergency help. Campus staff and EFF can support education planning, but they do not replace emergency responders."],
+      ["Academic or financial crisis", "Do not disappear. Contact the relevant office early, document the issue, ask about deadlines and appeal options, and keep written records."],
+      ["Your support map", "Save contacts for advising, financial aid, student accounts, accessibility, basic needs, counseling, campus safety, and EFF’s National Student Help Desk."],
+    ],
+    question: "A balance may block registration. What is the best first move?", options: ["Request an itemized bill and support review", "Ignore the message", "Withdraw immediately"], correct: 0,
+  },
+];
+
+function CourseCenter({ onApply }: { onApply: () => void }) {
+  const [open, setOpen] = useState(0);
+  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const completed = Object.entries(answers).filter(([index, answer]) => miniCourses[Number(index)].correct === answer).length;
+  return <section className="course-center">
+    <div className="page-banner course-banner"><p className="eyebrow light">EFF UNIVERSITY COURSE CENTER</p><h1>Take a real lesson.<br/><em>Practice a real skill.</em></h1><p>Short, interactive readiness courses teach the knowledge students are often expected to figure out alone.</p></div>
+    <div className="course-progress"><div><small>MY LEARNING RECORD</small><strong>{completed}/{miniCourses.length}</strong><span>courses passed</span></div><p>Complete each lesson and answer its knowledge check. Your progress remains on this page during your visit.</p></div>
+    <div className="course-list">{miniCourses.map((course, index) => <article className={open === index ? "open" : ""} key={course.code}>
+      <button className="course-title" onClick={() => setOpen(index)}><span>{course.code}</span><div><h2>{course.title}</h2><small>{course.time} • 3 lessons • knowledge check</small></div><b>{answers[index] === course.correct ? "PASSED ✓" : open === index ? "−" : "+"}</b></button>
+      {open === index && <div className="course-body">
+        <div className="lesson-grid">{course.lessons.map(([title, copy], lesson) => <section key={title}><span>LESSON {lesson + 1}</span><h3>{title}</h3><p>{copy}</p></section>)}</div>
+        <div className="knowledge-check"><small>KNOWLEDGE CHECK</small><h3>{course.question}</h3>{course.options.map((option, optionIndex) => <button className={answers[index] === optionIndex ? "chosen" : ""} onClick={() => setAnswers((current) => ({ ...current, [index]: optionIndex }))} key={option}>{option}</button>)}
+          {answers[index] !== undefined && <p className={answers[index] === course.correct ? "correct" : ""}>{answers[index] === course.correct ? "Correct — you passed this course." : "Try again. Choose the response that protects the most options."}</p>}
+        </div>
+      </div>}
+    </article>)}</div>
+    <div className="course-next"><div><p className="eyebrow light">READY TO BECOME AN EFFU STUDENT?</p><h2>Apply, receive your decision, and enroll.</h2></div><button onClick={onApply}>APPLY NOW →</button></div>
+  </section>;
+}
+
+function FamilyCenter({ onApply }: { onApply: () => void }) {
+  return <section className="family-center">
+    <div className="family-hero"><p className="eyebrow light">PARENT & FAMILY CENTER</p><h1>Your student needs<br/><em>a team, not pressure.</em></h1><p>Learn how to support exploration, compare real costs, prepare for emergencies, and help your student advocate without taking away their voice.</p><button onClick={onApply}>EXPLORE THE APPLICATION TOGETHER →</button></div>
+    <div className="family-roadmap">{[
+      ["BEFORE APPLYING", "Build a balanced list", "Compare academic fit, net price, graduation outcomes, support, distance, housing, and more than one pathway—not prestige alone.", ["Set a family budget before offers arrive", "Track each requirement and deadline", "Let the student lead their story"]],
+      ["AFTER ACCEPTANCE", "Read the full offer", "Separate grants and scholarships from work-study and loans. Ask what renews, what can change, and what remains unpaid.", ["Compare net cost, not award totals", "Review housing and meal costs", "Ask about appeals and payment options"]],
+      ["BEFORE MOVE-IN", "Make an emergency plan", "Agree on check-ins and save contacts for advising, aid, student accounts, safety, health, accessibility, food, housing, and transportation.", ["Choose two trusted campus contacts", "Plan transportation home", "Discuss documents and privacy"]],
+      ["WHEN TROUBLE HITS", "Listen first, then build the next step", "Ask: What happened? What deadline is next? Which office owns this? What is documented? What specific outcome should we request?", ["Avoid shame and panic", "Do not impersonate the student", "Help draft questions and follow up"]],
+    ].map(([phase, title, copy, tips], index) => <article key={phase as string}><span>0{index + 1}</span><small>{phase}</small><h2>{title}</h2><p>{copy}</p><ul>{(tips as string[]).map((tip) => <li key={tip}>{tip}</li>)}</ul></article>)}</div>
+    <div className="family-conversation"><div><p className="eyebrow">TRY THESE QUESTIONS</p><h2>Questions that open doors</h2></div><div>{["What feels exciting—and what feels confusing?", "What will this school cost after grants and scholarships?", "Who will you contact before a problem becomes an emergency?", "How do you want me to help while keeping you in charge?", "What would make another pathway a better fit?"].map((question) => <blockquote key={question}>“{question}”</blockquote>)}</div></div>
+    <div className="family-support"><h2>When your family needs another advocate</h2><p>EFF’s Student Help Center can help students navigate scholarships, FAFSA questions, emergency needs, school balances, and advocacy.</p><a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer">OPEN THE EFF STUDENT HELP CENTER ↗</a></div>
+  </section>;
+}
+
 export default function Home() {
   const [view, setView] = useState<View>("home");
   const [query, setQuery] = useState("");
@@ -473,13 +665,15 @@ export default function Home() {
         </button>
         <nav aria-label="University navigation">
           <button onClick={() => navigate("majors")}>Academics</button>
+          <button onClick={() => navigate("courses")}>Take a Course</button>
           <button onClick={() => navigate("orientation")}>Orientation</button>
           <button onClick={() => navigate("aid")}>Financial Aid Lab</button>
           <button onClick={() => navigate("campuslife")}>Campus Life</button>
+          <button onClick={() => navigate("families")}>Parents & Families</button>
           <button onClick={() => navigate("homeward")}>Education Bridge</button>
           <button onClick={goToOrganizations}>For Organizations</button>
         </nav>
-        <button className="portal-button" onClick={() => navigate("campuslife")}>Enter campus <span>→</span></button>
+        <button className="portal-button" onClick={() => navigate("campuslife")}>APPLY NOW <span>→</span></button>
       </header>
 
       {view === "home" && (
@@ -490,8 +684,8 @@ export default function Home() {
               <h1>A university you can<br/><em>experience before enrolling.</em></h1>
               <p className="hero-lede">Explore majors. Attend orientation. Read a real financial-aid offer. Build your schedule. Face the moments nobody warns you about—and learn what to do next.</p>
               <div className="hero-actions">
-                <button className="primary" onClick={() => navigate("orientation")}>Begin orientation <span>↗</span></button>
-                <button className="outline" onClick={() => navigate("majors")}>Explore 50+ majors</button>
+                <button className="primary" onClick={() => navigate("campuslife")}>Apply to EFF University <span>↗</span></button>
+                <button className="outline" onClick={() => navigate("courses")}>Take a real mini-course</button>
               </div>
               <div className="audience-note">
                 <b>BUILT FOR EVERY STAGE</b>
@@ -528,7 +722,9 @@ export default function Home() {
                 ["03", "Financial Aid Office", "Open a simulated award packet and calculate the true amount you would owe.", "aid" as const, "Decode an offer"],
                 ["04", "Campus Life Experience", "Choose an HBCU-inspired or contemporary university campus, select housing, register for classes, join organizations, and graduate.", "campuslife" as const, "Live the full experience"],
                 ["05", "Persistence Lab", "Face realistic academic, financial, work, housing, and registration problems.", "simulation" as const, "Practice staying enrolled"],
-                ["06", "Homeward Scholars Bridge", "A separate dignity-centered education pathway for learners experiencing homelessness or housing instability.", "homeward" as const, "Build an education bridge"],
+                ["06", "Course Center", "Take interactive lessons in college language, financial aid, self-advocacy, and emergency planning.", "courses" as const, "Take a course"],
+                ["07", "Parent & Family Center", "Help families compare cost, build support plans, and coach students through real decisions.", "families" as const, "Open family center"],
+                ["08", "Homeward Scholars Bridge", "A separate dignity-centered education pathway for learners experiencing homelessness or housing instability.", "homeward" as const, "Build an education bridge"],
               ].map(([number, title, copy, destination, action]) => (
                 <article className="campus-building" key={number}>
                   <span className="building-number">{number}</span>
@@ -617,6 +813,10 @@ export default function Home() {
           {filtered.length === 0 && <div className="empty-state"><b>No exact match—keep exploring.</b><p>Try a broader word such as “health,” “business,” “design,” or “technology.”</p></div>}
         </section>
       )}
+
+      {view === "courses" && <CourseCenter onApply={() => navigate("campuslife")} />}
+
+      {view === "families" && <FamilyCenter onApply={() => navigate("campuslife")} />}
 
       {view === "orientation" && (
         <section className="orientation-page">
@@ -751,6 +951,10 @@ export default function Home() {
           </div>
           <p className="legal-note">This celebratory simulation degree is not a high-school diploma, GED or equivalency credential, college degree, academic credit, license, or professional certification.</p>
           <div className="completion-actions"><button className="primary" onClick={() => window.print()}>Print certificate</button><button className="outline" onClick={() => navigate("majors")}>Keep exploring majors</button><a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer">Get real student support ↗</a></div>
+          <div className="alumni-network">
+            <p className="eyebrow light">YOUR EFF JOURNEY CONTINUES</p><h2>Welcome to the Future Fulfilled Network.</h2><p>Graduation is not goodbye. Stay connected to Esther Funds Foundation as a learner, mentor, ambassador, volunteer, advocate, chapter leader, or story-sharer.</p>
+            <div><a href="https://www.estherfundsfoundation.org/" target="_blank" rel="noreferrer">MENTOR OR VOLUNTEER</a><a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer">GET STUDENT SUPPORT</a><a href="https://www.estherfundsfoundation.org/" target="_blank" rel="noreferrer">BRING EFFU TO A COMMUNITY</a></div>
+          </div>
         </section>
       )}
 
