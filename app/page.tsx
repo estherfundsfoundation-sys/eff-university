@@ -1229,7 +1229,7 @@ export default function Home() {
       <footer>
         <div className="wordmark footer-mark"><img className="footer-crest" src="/eff-university-dove-crest.png" alt="EFF University dove crest" /><span><b>EFF UNIVERSITY</b><small>Every Future Fulfilled.</small></span></div>
         <p>EFF University is an immersive college-and-career readiness experience from <a href="https://www.estherfundsfoundation.org/" target="_blank" rel="noreferrer">Esther Funds Foundation</a>. It is not an accredited degree-granting institution; participation does not create admission, academic credit, financial aid, or enrollment at another institution.</p>
-        <div><button onClick={() => navigate("majors")}>Academics</button><button onClick={() => navigate("orientation")}>Orientation</button><a href="/eff-university/start">Explore Pathways</a><a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer">Student Help</a></div>
+        <div><button onClick={() => navigate("majors")}>Academics</button><button onClick={() => navigate("orientation")}>Orientation</button><a href="/eff-university/start">Explore Pathways</a><a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer">Student Help</a><a href="/admin" aria-label="EFF University administrator login">Administrator Login</a></div>
         <small>© 2026 Esther Funds Foundation • For such a time as this.</small>
       </footer>
     </main>
