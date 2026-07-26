@@ -502,6 +502,25 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
             {campus === "legacy" && <div className="culture-note"><b>ABOUT THE HBCU-INSPIRED EXPERIENCE</b><p>EFF University honors the diversity of HBCU life. No single tradition represents every HBCU. This original campus week draws inspiration from documented traditions involving campus markets, the Yard, homecoming, Royal Court, marching bands, chapel, service, student entrepreneurship, and organization life.</p></div>}
           </section>
 
+          <section className="portal-panel campus-traditions-gallery">
+            <span className="panel-number">L</span><div className="panel-heading"><small>EFFU CAMPUS LIFE</small><h2>See yourself in the experience</h2><p>Picture the energy of game day, the sound of the band, and the moment you meet the people who help campus feel like home.</p></div>
+            <div className="traditions-gallery-grid">
+              <figure className="tradition-feature">
+                <img src="/effu-football-dove-campus-life.png" loading="lazy" decoding="async" alt="EFF University students cheering at a football game with Valor the Dove mascot" />
+                <figcaption><small>GAME DAY AT FULFILLED FUTURES STADIUM</small><h3>Fly with The Flight</h3><p>Practice claiming a student ticket, planning transportation, following stadium safety guidance, and participating in campus traditions with Valor the Dove.</p></figcaption>
+              </figure>
+              <figure>
+                <img src="/effu-marching-band-campus-life.png" loading="lazy" decoding="async" alt="EFF University marching band and dancers performing in royal purple and cream" />
+                <figcaption><small>THE ROYAL SOUND</small><h3>Music, movement and belonging</h3><p>Explore performance, leadership, production, athletic-band, dance, media, and event-support roles.</p></figcaption>
+              </figure>
+              <figure>
+                <img src="/effu-service-organizations-campus-life.png" loading="lazy" decoding="async" alt="Diverse EFF University students meeting service-centered campus organizations at an outdoor fair" />
+                <figcaption><small>ORGANIZATION & SERVICE FAIR</small><h3>Find your people and your purpose</h3><p>Meet fictional Greek-letter and service organizations created for this experience, sign a practice interest form, and learn how to evaluate belonging, service, time commitments, costs, and safety.</p></figcaption>
+              </figure>
+            </div>
+            <p className="experience-disclaimer">EFF University is an educational college-readiness experience, not an accredited degree-granting institution. Campus scenes and organizations shown here are original learning-world representations; they do not depict or endorse a real college, fraternity, or sorority.</p>
+          </section>
+
           <section className="portal-panel">
             <span className="panel-number">03</span><div className="panel-heading"><small>HOUSING & RESIDENTIAL EDUCATION</small><h2>Choose where you would live</h2></div>
             <div className="hall-grid">{world.halls.map(([name, details]) => <button className={hall === name ? "selected" : ""} onClick={() => setHall(name)} key={name}><span>{hall === name ? "✓" : "⌂"}</span><b>{name}</b><small>{details}</small></button>)}</div>
