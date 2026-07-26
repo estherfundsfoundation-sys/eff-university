@@ -708,8 +708,8 @@ export default function Home() {
             <div className="hero-copy">
               <p className="eyebrow">ESTHER FUNDS FOUNDATION PRESENTS</p>
               <h1>Welcome to<br/><em>EFF University.</em></h1>
-              <p className="hero-kicker">THE NATION’S #1 COLLEGE-NAVIGATION UNIVERSITY EXPERIENCE</p>
-              <p className="hero-lede">Explore 100 academic majors and 100+ student organizations. Join a real student community. Follow the nationally ranked #1 EFFU Doves. Apply, enroll, take courses, manage money, experience campus life, and learn how to navigate college before the decisions become real.</p>
+              <p className="hero-kicker">YOUR #1 COLLEGE-NAVIGATION UNIVERSITY EXPERIENCE</p>
+              <p className="hero-lede">Explore 100 academic majors and 100+ student organizations. Join a real student community. Follow the EFFU preseason-ranked #1 Doves. Apply, enroll, take courses, manage money, experience campus life, and learn how to navigate college before the decisions become real.</p>
               <div className="hero-actions">
                 <button className="primary" onClick={() => navigate("campuslife")}>Apply to EFF University <span>↗</span></button>
                 <button className="outline" onClick={() => navigate("courses")}>Take a real mini-course</button>
