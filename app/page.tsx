@@ -111,6 +111,8 @@ const challenges = [
 ];
 
 const formatMoney = (value: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+const alertBarDismissedKey = "effu-campus-alert-dismissed";
+const popupDismissedKey = "effu-campus-popups-dismissed";
 
 type View = "home" | "majors" | "courses" | "families" | "orientation" | "aid" | "simulation" | "campuslife" | "homeward" | "certificate";
 type CampusKind = "legacy" | "metropolitan";
@@ -705,8 +707,9 @@ export default function Home() {
   const [challengeIndex, setChallengeIndex] = useState(0);
   const [challengeSolved, setChallengeSolved] = useState(false);
   const [alertIndex, setAlertIndex] = useState(0);
-  const [alertBarVisible, setAlertBarVisible] = useState(true);
+  const [alertBarVisible, setAlertBarVisible] = useState(false);
   const [popupVisible, setPopupVisible] = useState(false);
+  const [popupDismissed, setPopupDismissed] = useState(false);
 
   const schools = useMemo(() => ["All schools", ...Array.from(new Set(majors.map((major) => major.school))).sort()], []);
   const filtered = majors.filter((major) => {
@@ -719,19 +722,41 @@ export default function Home() {
   const orientationPercent = Math.round((orientationDone.length / orientationSteps.length) * 100);
 
   useEffect(() => {
+    setAlertBarVisible(window.localStorage.getItem(alertBarDismissedKey) !== "true");
+    setPopupDismissed(window.localStorage.getItem(popupDismissedKey) === "true");
+  }, []);
+
+  useEffect(() => {
+    if (popupDismissed) {
+      setPopupVisible(false);
+      return;
+    }
     const firstPopup = window.setTimeout(() => setPopupVisible(true), 1800);
+    let nextPopup: number | undefined;
     const rotateAlerts = window.setInterval(() => {
       setPopupVisible(false);
-      window.setTimeout(() => {
+      nextPopup = window.setTimeout(() => {
         setAlertIndex((current) => (current + 1) % universityAlerts.length);
         setPopupVisible(true);
       }, 350);
     }, 9000);
     return () => {
       window.clearTimeout(firstPopup);
+      if (nextPopup) window.clearTimeout(nextPopup);
       window.clearInterval(rotateAlerts);
     };
-  }, []);
+  }, [popupDismissed]);
+
+  function dismissAlertBar() {
+    window.localStorage.setItem(alertBarDismissedKey, "true");
+    setAlertBarVisible(false);
+  }
+
+  function dismissPopups() {
+    window.localStorage.setItem(popupDismissedKey, "true");
+    setPopupDismissed(true);
+    setPopupVisible(false);
+  }
 
   function navigate(next: typeof view) {
     setView(next);
@@ -755,7 +780,7 @@ export default function Home() {
         </div>
         <button className="alert-action" onClick={() => navigate(universityAlerts[alertIndex].view)}>{universityAlerts[alertIndex].action} →</button>
         <button className="alert-arrow" onClick={() => setAlertIndex((alertIndex + 1) % universityAlerts.length)} aria-label="Next campus alert">›</button>
-        <button className="alert-dismiss" onClick={() => setAlertBarVisible(false)} aria-label="Dismiss campus alert">×</button>
+        <button className="alert-dismiss" onClick={dismissAlertBar} aria-label="Dismiss campus alert">×</button>
       </section>}
       <header className="university-header">
         <button className="wordmark" onClick={() => navigate("home")} aria-label="EFF University home">
@@ -779,7 +804,7 @@ export default function Home() {
       </header>
 
       {popupVisible && <aside className="campus-popup" role="status" aria-live="polite">
-        <button onClick={() => setPopupVisible(false)} aria-label="Dismiss notification">×</button>
+        <button onClick={dismissPopups} aria-label="Dismiss notification">×</button>
         <div className="popup-icon">EFFU</div>
         <div>
           <small>NEW CAMPUS NOTIFICATION</small>
