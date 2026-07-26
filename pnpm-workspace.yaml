@@ -2,7 +2,7 @@ overrides:
   lightningcss: 1.31.1
   "@emnapi/runtime": 1.11.2
 
-onlyBuiltDependencies:
-  - esbuild
-  - sharp
-  - workerd
+allowBuilds:
+  esbuild: true
+  sharp: true
+  workerd: true
