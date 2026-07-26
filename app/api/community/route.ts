@@ -1,7 +1,7 @@
 import { and, desc, eq } from "drizzle-orm";
-import { getChatGPTUser } from "../../chatgpt-auth";
 import { getDb } from "../../../db";
 import { communityPosts, communityReports, connections, profiles } from "../../../db/schema";
+import { verifyEFFUSession } from "../../../lib/effu-server-auth";
 
 const stages = ["Exploring college", "Middle or high school", "Applying now", "Accepted / deciding", "Current college student", "Adult or returning learner"];
 const campuses = ["Exploring both campuses", "Legacy HBCU Experience", "Metropolitan University Experience", "Homeward Scholars Bridge"];
@@ -20,8 +20,8 @@ function safeProfile(row: typeof profiles.$inferSelect, waveCount = 0) {
   };
 }
 
-export async function GET() {
-  const user = await getChatGPTUser();
+export async function GET(request: Request) {
+  const user = await verifyEFFUSession(request);
   if (!user) return Response.json({ error: "Sign in required" }, { status: 401 });
   const db = getDb();
   const [mine] = await db.select().from(profiles).where(eq(profiles.ownerEmail, user.email)).limit(1);
@@ -33,7 +33,11 @@ export async function GET() {
     .where(eq(profiles.discoverable, true)).orderBy(desc(communityPosts.createdAt)).limit(50);
   const myConnections = await db.select().from(connections).where(eq(connections.fromEmail, user.email));
   return Response.json({
-    user: { displayName: user.displayName },
+    user: {
+      displayName: typeof user.user_metadata?.display_name === "string"
+        ? user.user_metadata.display_name
+        : user.email.split("@")[0],
+    },
     profile: mine ? safeProfile(mine) : null,
     profiles: directory.map((profile) => safeProfile(profile)),
     posts,
@@ -42,7 +46,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const user = await getChatGPTUser();
+  const user = await verifyEFFUSession(request);
   if (!user) return Response.json({ error: "Sign in required" }, { status: 401 });
   const body = await request.json() as Record<string, unknown>;
   const db = getDb();

@@ -5,12 +5,14 @@ import { getStoredSession, newStudentId, sendPasswordReset, signIn, signOut, sig
 import { pathways } from "../../lib/eff-pathways";
 import { CONSENT_VERSION, FULL_SIMULATION_DISCLAIMER, SIMULATION_WATERMARK } from "../../lib/launch-readiness";
 import ScholarshipPanel from "./ScholarshipPanel";
+import CourseExperience from "./CourseExperience";
 
 type Mode = "apply" | "signin" | "reset";
 type Metadata = {
   display_name?: string; student_id?: string; pathway_slug?: string; pathway_name?: string;
   stage?: string; interests?: string; accepted_at?: string; completed_modules?: string[];
   age_path?: string; consent_history?: Array<{ version: string; accepted_at: string; age_path: string }>;
+  quiz_scores?: Record<string, number>; graduated_at?: string;
 };
 
 export default function AccountPortal() {
@@ -27,6 +29,7 @@ export default function AccountPortal() {
   const [interests, setInterests] = useState("");
   const [guardian, setGuardian] = useState(false);
   const [agePath, setAgePath] = useState("");
+  const [activeModule, setActiveModule] = useState<number | null>(null);
 
   useEffect(() => {
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
@@ -103,11 +106,13 @@ export default function AccountPortal() {
     finally { setLoading(false); }
   }
 
-  async function toggleModule(module: string) {
+  async function completeCourse(module: string, score: number) {
     if (!session) return;
-    const next = completed.includes(module) ? completed.filter((item) => item !== module) : [...completed, module];
+    const next = completed.includes(module) ? completed : [...completed, module];
+    const activePathway = pathways.find((item) => item.slug === metadata.pathway_slug) || pathways[1];
+    const graduatedAt = next.length >= activePathway.modules.length ? metadata.graduated_at || new Date().toISOString() : metadata.graduated_at;
     setLoading(true); setError("");
-    try { setSession(await updateStudentMetadata(session, { ...metadata, completed_modules: next })); }
+    try { setSession(await updateStudentMetadata(session, { ...metadata, completed_modules: next, quiz_scores: { ...(metadata.quiz_scores || {}), [module]: score }, graduated_at: graduatedAt })); }
     catch (reason) { setError(reason instanceof Error ? reason.message : "Progress could not be saved."); }
     finally { setLoading(false); }
   }
@@ -116,6 +121,12 @@ export default function AccountPortal() {
     if (!session) return;
     const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), account_email: session.user.email, simulation_record: metadata, disclaimer: FULL_SIMULATION_DISCLAIMER }, null, 2)], { type: "application/json" });
     const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "effu-account-summary.json"; link.click(); URL.revokeObjectURL(link.href);
+  }
+
+  function printCompletionCertificate(pathwayName: string) {
+    const certificate = window.open("", "_blank", "noopener,noreferrer"); if (!certificate) return;
+    const clean = (value: string) => value.replace(/[<>&]/g, "");
+    certificate.document.write(`<!doctype html><html><head><title>EFFU Completion Certificate</title><style>body{font-family:Arial;background:#42127f;padding:40px}.page{max-width:900px;margin:auto;background:#f5f0e6;border:16px double #42127f;padding:70px;text-align:center;color:#260651}h1{font:72px Georgia}.name{font:italic 48px Georgia;color:#42127f}.mark{margin-top:50px;border:3px solid #42127f;padding:14px;font-weight:bold}small{display:block;line-height:1.6;margin-top:20px}@media print{body{background:white;padding:0}}</style></head><body><main class="page"><b>EFF UNIVERSITY • EST. 2026</b><h1>Congratulations!</h1><p>This certificate recognizes</p><p class="name">${clean(metadata.display_name || "EFFU Student")}</p><p>for completing the educational-simulation pathway</p><h2>${clean(pathwayName)}</h2><p>Every Future Fulfilled.</p><div class="mark">${SIMULATION_WATERMARK}</div><small>Not an academic degree, diploma, college credit, professional license, or official record from an accredited institution.</small></main><script>window.print()</script></body></html>`); certificate.document.close();
   }
 
   if (session) {
@@ -134,7 +145,7 @@ export default function AccountPortal() {
         {error && <div className="account-error" role="alert">{error}</div>}
         <div className="portal-stats"><article><small>PATHWAY PROGRESS</small><b>{percentage}%</b><div><i style={{ width: `${percentage}%` }} /></div></article><article><small>MODULES COMPLETE</small><b>{completed.length}/{pathway.modules.length}</b></article><article><small>STUDENT STATUS</small><b>ACCEPTED</b></article></div>
         <div className="dashboard-grid">
-          <section className="dashboard-main" id="my-pathway"><p className="eyebrow">MY PATHWAY</p><h2>{pathway.name}</h2><p>{pathway.description}</p><ol className="account-modules">{pathway.modules.map((module, index) => <li className={completed.includes(module) ? "complete" : ""} key={module}><button disabled={loading} onClick={() => toggleModule(module)}><span>{completed.includes(module) ? "✓" : String(index + 1).padStart(2, "0")}</span><b>{module}</b><small>{completed.includes(module) ? "Completed — select to reopen" : "Mark complete"}</small></button></li>)}</ol></section>
+          <section className="dashboard-main" id="my-pathway"><p className="eyebrow">MY PATHWAY</p><h2>{pathway.name}</h2><p>{pathway.description}</p><div className="course-gate-note"><b>COURSES, QUIZZES & TESTS</b><span>Open each lesson, complete its real-life scenario, and score at least 2 of 3. Courses cannot be marked complete without passing.</span></div><ol className="account-modules">{pathway.modules.map((module, index) => <li className={completed.includes(module) ? "complete" : ""} key={module}><button disabled={loading} onClick={() => setActiveModule(index)}><span>{completed.includes(module) ? "✓" : String(index + 1).padStart(2, "0")}</span><b>{module}</b><small>{completed.includes(module) ? `Passed • ${metadata.quiz_scores?.[module] || 2}/3 • Review course` : "Open lesson & graded quiz"}</small></button></li>)}</ol></section>
           <aside className="dashboard-side">
             <article><small>QUICK ACTION</small><h3>Continue your simulation</h3><p>Enter the full college experience to explore majors, housing, financial aid, schedules, organizations, emergencies, and graduation.</p><a href="/#apply">ENTER EFF UNIVERSITY →</a></article>
             <article><small>PRIVATE RECORD</small><h3>Continuity Passport</h3><p>Your pathway and completed modules are saved securely to your account.</p><a href="/eff-university/passport">OPEN PASSPORT →</a></article>
@@ -142,7 +153,9 @@ export default function AccountPortal() {
             <article><small>MY DATA & CONSENT</small><h3>Privacy controls</h3><p>Export your current EFFU account summary, review the privacy notice and consent version, or begin a verified account-deletion request.</p><button onClick={exportAccountSummary}>EXPORT MY ACCOUNT SUMMARY</button><a href="/policies#consent">VIEW CONSENT HISTORY →</a><a href="/support#account-data">REQUEST ACCOUNT DELETION →</a></article>
           </aside>
         </div>
+        {completed.length >= pathway.modules.length && <section className="graduation-unlock official-simulation-document"><img src="/eff-university-dove-crest.png" alt="" /><div><p className="eyebrow light">EFFU COMMENCEMENT</p><h2>Congratulations, {metadata.display_name || "graduate"}!</h2><p>You graduated from the <b>{pathway.name}</b> educational experience by passing every required course and knowledge check. Your scholarship application is now unlocked below.</p><button onClick={() => printCompletionCertificate(pathway.name)}>PRINT MY COMPLETION CERTIFICATE →</button><small>{SIMULATION_WATERMARK}</small></div></section>}
         <ScholarshipPanel session={session} unlocked={completed.length >= pathway.modules.length} />
+        {activeModule !== null && <CourseExperience module={pathway.modules[activeModule]} moduleIndex={activeModule} pathwayName={pathway.name} passed={completed.includes(pathway.modules[activeModule])} onClose={() => setActiveModule(null)} onPass={(score) => completeCourse(pathway.modules[activeModule], score)} />}
         <p className="dashboard-simulation-disclaimer"><b>{SIMULATION_WATERMARK}</b>{FULL_SIMULATION_DISCLAIMER}</p>
       </section>
     </main>;

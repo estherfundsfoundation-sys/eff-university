@@ -28,3 +28,28 @@ test("administrator access is allowlisted and scholarship records stay in dedica
   assert.match(schema, /scholarship_applications/);
   assert.match(schema, /effu_students/);
 });
+
+test("community uses EFFU accounts and never redirects members to ChatGPT authentication", async () => {
+  const [page, hub, api] = await Promise.all([
+    readFile(new URL("app/community/page.tsx", root), "utf8"),
+    readFile(new URL("app/community/CommunityHub.tsx", root), "utf8"),
+    readFile(new URL("app/api/community/route.ts", root), "utf8"),
+  ]);
+  assert.doesNotMatch(`${page}${hub}${api}`, /requireChatGPTUser|getChatGPTUser|signin-with-chatgpt/);
+  assert.match(hub, /getStoredSession/);
+  assert.match(hub, /\/account/);
+  assert.match(api, /verifyEFFUSession/);
+});
+
+test("pathway graduation requires passing graded course knowledge checks", async () => {
+  const [portal, courses] = await Promise.all([
+    readFile(new URL("app/account/AccountPortal.tsx", root), "utf8"),
+    readFile(new URL("app/account/CourseExperience.tsx", root), "utf8"),
+  ]);
+  assert.match(courses, /score >= 2/);
+  assert.match(courses, /Graded knowledge check/);
+  assert.match(portal, /completeCourse/);
+  assert.doesNotMatch(portal, /toggleModule/);
+  assert.match(portal, /Congratulations/);
+  assert.match(portal, /PRINT MY COMPLETION CERTIFICATE/);
+});

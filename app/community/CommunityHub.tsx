@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getStoredSession, signOut, type EFFUSession } from "../../lib/effu-auth";
 
 type Profile = { id: number; displayName: string; ageGroup: string; stage: string; campus: string; interests: string[]; bio: string; discoverable: boolean };
 type Post = { id: number; topic: string; message: string; createdAt: string; authorName: string; authorStage: string };
@@ -11,29 +12,52 @@ const stages = ["Exploring college", "Middle or high school", "Applying now", "A
 const campuses = ["Exploring both campuses", "Legacy HBCU Experience", "Metropolitan University Experience", "Homeward Scholars Bridge"];
 const topics = ["Introductions", "Choosing a major", "Applications", "Financial aid", "Campus life", "First-generation students", "Adult learners", "Staying enrolled"];
 
-export default function CommunityHub({ accountName, signOutPath }: { accountName: string; signOutPath: string }) {
+export default function CommunityHub() {
+  const [session, setSession] = useState<EFFUSession | null>(null);
+  const [sessionReady, setSessionReady] = useState(false);
   const [data, setData] = useState<HubData | null>(null);
   const [notice, setNotice] = useState("");
   const [tab, setTab] = useState<"community" | "profile" | "graphic">("community");
-  const [profile, setProfile] = useState({ displayName: accountName.split("@")[0], ageGroup: "", stage: "", campus: campuses[0], interests: [] as string[], bio: "", discoverable: false });
+  const [profile, setProfile] = useState({ displayName: "EFFU Student", ageGroup: "", stage: "", campus: campuses[0], interests: [] as string[], bio: "", discoverable: false });
   const [post, setPost] = useState({ topic: topics[0], message: "" });
   const [photo, setPhoto] = useState("");
 
-  async function load() {
-    const response = await fetch("/api/community", { cache: "no-store" });
+  async function load(activeSession = session) {
+    if (!activeSession) return;
+    const response = await fetch("/api/community", {
+      cache: "no-store",
+      headers: { Authorization: `Bearer ${activeSession.access_token}` },
+    });
     if (!response.ok) return setNotice("We could not load the community right now.");
     const next = await response.json() as HubData;
     setData(next);
     if (next.profile) setProfile({ ...next.profile, interests: next.profile.interests });
   }
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    const activeSession = getStoredSession();
+    setSession(activeSession);
+    setSessionReady(true);
+    if (activeSession) {
+      const metadata = activeSession.user.user_metadata || {};
+      const accountName = typeof metadata.display_name === "string"
+        ? metadata.display_name
+        : activeSession.user.email?.split("@")[0] || "EFFU Student";
+      setProfile((current) => ({ ...current, displayName: accountName }));
+    }
+  }, []);
+  useEffect(() => { if (session) void load(session); }, [session?.access_token]);
 
   async function action(payload: Record<string, unknown>) {
+    if (!session) return false;
     setNotice("");
-    const response = await fetch("/api/community", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
+    const response = await fetch("/api/community", {
+      method: "POST",
+      headers: { "content-type": "application/json", Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify(payload),
+    });
     const result = await response.json() as { error?: string };
     if (!response.ok) { setNotice(result.error || "Please try again."); return false; }
-    await load();
+    await load(session);
     return true;
   }
 
@@ -67,8 +91,11 @@ export default function CommunityHub({ accountName, signOutPath }: { accountName
     const link = document.createElement("a"); link.download = "accepted-to-effu-instagram-4x5.png"; link.href = canvas.toDataURL("image/png"); link.click();
   }
 
+  if (!sessionReady) return <main className="community-page"><section className="community-auth-gate"><p>Opening your EFFU community…</p></section></main>;
+  if (!session) return <main className="community-page"><section className="community-auth-gate"><img src="/eff-university-dove-crest.png" alt="" /><p className="eyebrow">THE FUTURE FULFILLED NETWORK</p><h1>Meet the EFFU community.</h1><p>Sign in with your EFFU student account to build your profile, meet other college explorers, and continue where you left off.</p><a href="/account">SIGN IN WITH MY EFFU ACCOUNT →</a><small>You will stay on effuniversity.estherfundsfoundation.org.</small></section></main>;
+
   return <main className="community-page">
-    <header className="community-header"><a href="/"><img src="/eff-university-dove-crest.png" alt="" /><span><b>EFF UNIVERSITY</b><small>STUDENT ACCOUNT & COMMUNITY</small></span></a><div><a href="/resources">College Resources</a><span>Welcome, {data?.profile?.displayName || accountName}</span><a href={signOutPath}>Sign out</a></div></header>
+    <header className="community-header"><a href="/"><img src="/eff-university-dove-crest.png" alt="" /><span><b>EFF UNIVERSITY</b><small>STUDENT ACCOUNT & COMMUNITY</small></span></a><div><a href="/resources">College Resources</a><span>Welcome, {data?.profile?.displayName || profile.displayName}</span><button onClick={async () => { await signOut(session); window.location.href = "/account"; }}>Sign out</button></div></header>
     <section className="community-welcome"><p className="eyebrow light">THE FUTURE FULFILLED NETWORK</p><h1>Meet people who are<br/><em>figuring it out, too.</em></h1><p>Build a college-interest profile, find students exploring similar pathways, share encouragement, ask questions, and learn together without posting personal contact information.</p><div className="community-safety"><b>COMMUNITY SAFETY</b><span>Accounts are for ages 13+. Learners under 13 can explore EFFU with a parent, guardian, school, or organization. Never post your email, phone number, address, school schedule, passwords, or private financial information.</span></div></section>
     <nav className="community-tabs"><button className={tab === "community" ? "active" : ""} onClick={() => setTab("community")}>COMMUNITY</button><button className={tab === "profile" ? "active" : ""} onClick={() => setTab("profile")}>MY ACCOUNT</button><button className={tab === "graphic" ? "active" : ""} onClick={() => setTab("graphic")}>SOCIAL GRAPHIC</button><a href="/resources">COLLEGE RESOURCE CENTER</a></nav>
     {notice && <div className="community-notice">{notice}</div>}
