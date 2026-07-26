@@ -383,7 +383,7 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
           </article>;
         })}
       </div>
-      <form className="university-application" onSubmit={(event) => { event.preventDefault(); if (applicationCampus && major && educationStage && academicGoal) chooseCampus(applicationCampus); }}>
+      <form id="effu-application" className="university-application" onSubmit={(event) => { event.preventDefault(); if (applicationCampus && major && educationStage && academicGoal) chooseCampus(applicationCampus); }}>
         <div className="application-title"><span>EFFU</span><div><small>OFFICE OF UNDERGRADUATE ADMISSIONS</small><h2>Application for Admission</h2><p>Fall Preview Entry Term</p></div></div>
         <div className="application-note"><b>Your privacy matters.</b><p>Use a preferred display name. This experience does not need your legal name, birth date, address, Social Security number, password, financial records, transcripts, or identification documents.</p></div>
         <div className="application-coach">
@@ -406,6 +406,26 @@ function CampusLifeSimulation({ onGraduate, onHelp }: { onGraduate: () => void; 
         <p>Submitting creates your personalized EFFU admissions experience on this device. It does not send an application to another college.</p>
       </form>
       <button className="homeward-entry" onClick={onHelp}><span>♡</span><div><small>A SEPARATE PATHWAY WITH DIGNITY</small><b>Education Bridge for Learners Experiencing Homelessness</b><p>Start with safety, documents, a high-school diploma or equivalency pathway, then build toward college, training, and stable support.</p></div><i>ENTER PATHWAY →</i></button>
+      <section className="military-connected-entry">
+        <div><span>★</span><small>MILITARY-CONNECTED LEARNERS</small><h2>Your service and experience belong in the college conversation.</h2><p>Veterans, active-duty service members, reservists, National Guard members, and military-connected families bring valuable leadership, resilience, and perspective to learning communities. EFF University welcomes you to explore first-year, transfer, returning-student, certificate, and workforce pathways while practicing the transition into college life.</p></div>
+        <nav aria-label="Military-connected education resources">
+          <a href="https://www.va.gov/education/" target="_blank" rel="noreferrer"><b>VA Education Benefits</b><span>Explore official education and training benefits ↗</span></a>
+          <a href="https://www.va.gov/education/gi-bill-comparison-tool/schools-and-employers" target="_blank" rel="noreferrer"><b>GI Bill® Comparison Tool</b><span>Compare VA-approved schools and programs ↗</span></a>
+          <a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer"><b>EFF Student Help Center</b><span>Request college-navigation support and advocacy ↗</span></a>
+        </nav>
+        <p className="military-note">EFF University does not determine eligibility for military or veterans’ benefits. Confirm program approval, benefit amounts, and documentation directly with the U.S. Department of Veterans Affairs and the real institution’s School Certifying Official.</p>
+      </section>
+      <section className="university-resource-directory">
+        <div><small>EFF UNIVERSITY RESOURCES</small><h2>Know where to go before you need help.</h2><p>Use this practice directory to learn the offices and tools students commonly rely on throughout college.</p></div>
+        <nav aria-label="EFF University resource directory">
+          <a href="/eff-university/pathways"><span>01</span><b>Academic Pathways</b><small>Majors, courses and career routes</small></a>
+          <a href="#effu-application"><span>02</span><b>Admissions Office</b><small>Application and campus selection</small></a>
+          <a href="/resources"><span>03</span><b>Student Resources</b><small>Guides, videos and downloadable tools</small></a>
+          <a href="/account"><span>04</span><b>Student Portal</b><small>Account, progress and experience record</small></a>
+          <a href="/tech-support"><span>05</span><b>Technology Department</b><small>Account and access support</small></a>
+          <a href="https://portal.estherfundsfoundation.org/" target="_blank" rel="noreferrer"><span>06</span><b>Student Help Center</b><small>Real EFF support and advocacy ↗</small></a>
+        </nav>
+      </section>
     </section>
   );
 
